@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать лекцию — OmiLab Creator</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Unbounded:wght@400;600;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { darkbg: '#050505', omiRed: '#ff3b30' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Unbounded', 'sans-serif'] },
+                    backgroundImage: { 'noise-bg': "url('/static/images/bg_omi_noise.png')" }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        /* Перекрашиваем редактор в темную тему */
+        .ql-toolbar {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+        .ql-container {
+            background: rgba(15, 15, 16, 0.6);
+            backdrop-filter: blur(20px);
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
+            color: #d1d5db; /* Цвет текста */
+            font-family: 'Inter', sans-serif;
+            font-size: 1.125rem;
+        }
+        /* Цвет иконок в редакторе */
+        .ql-snow .ql-stroke { stroke: #9ca3af; }
+        .ql-snow .ql-fill { fill: #9ca3af; }
+        .ql-snow .ql-picker { color: #9ca3af; }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white min-h-screen flex items-center justify-center p-6 font-sans">
+
+    <div class="w-full max-w-4xl bg-[#0f0f10]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative">
+
+        <h1 class="font-display font-bold text-3xl mb-8 text-center">Новая лекция 💎</h1>
+
+        <form id="create-form" class="space-y-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Название</label>
+                    <input type="text" id="title" required
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors"
+                        placeholder="Введение в матанализ">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Предмет</label>
+                    <input type="text" id="subject" required
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors"
+                        placeholder="Математика">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Автор</label>
+                <input type="text" id="author" required
+                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors"
+                    placeholder="evaal">
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Контент лекции</label>
+                <div id="editor" style="height: 300px;"></div>
+            </div>
+
+            <button type="submit" class="w-full bg-white text-black font-display font-bold py-4 rounded-xl hover:bg-omiRed hover:text-white transition-all shadow-lg text-lg">
+                Опубликовать
+            </button>
+        </form>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        // 1. Инициализируем редактор
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Пиши здесь свой шедевр...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'clean']
+                ]
+            }
+        });
+
+        // 2. Логика отправки формы
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Собираем данные
+            const data = {
+                title: document.getElementById('title').value,
+                subject: document.getElementById('subject').value,
+                author: document.getElementById('author').value,
+                content: quill.root.innerHTML // <--- ВОТ ТУТ МЫ БЕРЕМ HTML ИЗ РЕДАКТОРА
+            };
+
+            try {
+                const response = await fetch('/api/lectures', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert('Успешно! ID: ' + result.id);
+                    window.location.href = `/lecture/${result.id}`; // Редирект на готовую лекцию
+                } else {
+                    alert('Ошибка при сохранении');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Ошибка сети');
+            }
+        });
+    </script>
+</body>
+</html>

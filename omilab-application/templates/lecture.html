@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ lecture.title }} — OmiLab</title>
+
+    <link rel="icon" type="image/png" href="/static/images/OmiClearDark.png?v=2">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Unbounded:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#050505',
+                        omiRed: '#ff3b30',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Unbounded', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'noise-bg': "url('/static/images/bg_omi_noise.png')",
+                    },
+                    boxShadow: {
+                        'glow-white': '0 0 20px rgba(255, 255, 255, 0.3)',
+                        'glow-red': '0 0 20px rgba(255, 59, 48, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        .content-text p { margin-bottom: 1.5em; line-height: 1.8; color: #e5e7eb; font-weight: 300; font-size: 1.125rem; }
+        .content-text ul { list-style-type: none; padding-left: 0; margin-bottom: 1.5em; }
+        .content-text li {
+            position: relative;
+            padding-left: 1.5em;
+            margin-bottom: 0.8em;
+            color: #d1d5db;
+        }
+        .content-text li::before {
+            content: "•";
+            color: #ff3b30;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        /* Эффект шума на фоне карточек */
+        .glass-panel {
+            background: rgba(15, 15, 16, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white min-h-screen flex flex-col font-sans selection:bg-omiRed selection:text-white overflow-x-hidden">
+
+    <nav class="w-full max-w-[1400px] mx-auto px-6 py-8 flex justify-between items-center relative z-50">
+        <a href="/" class="group flex items-center gap-3 text-xs font-display font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors duration-300">
+            <div class="w-8 h-8 rounded-full border border-gray-700 flex items-center justify-center group-hover:border-white group-hover:bg-white group-hover:text-black transition-all duration-300">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-0.5 transition-transform">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </div>
+            <span>Назад</span>
+        </a>
+
+        <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+             <div class="w-12 h-12 bg-[#1a1a1a]/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-2xl overflow-hidden">
+                <img src="/static/images/OmiClearDark.png" alt="OmiLab" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity">
+            </div>
+        </div>
+
+        <div class="w-[80px]"></div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-[1200px] mx-auto px-6 pb-24 pt-4">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+
+            <div class="lg:col-span-8 relative">
+
+                <div class="mb-10 relative z-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="px-4 py-1.5 rounded-full border border-omiRed/30 bg-omiRed/10 text-omiRed text-[10px] font-display font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,59,48,0.2)]">
+                            {{ lecture.subject }}
+                        </span>
+                        <span class="text-gray-500 text-xs font-mono tracking-wider">
+                            ID: {{ lecture.id }}
+                        </span>
+                    </div>
+
+                    <h1 class="font-display font-black text-4xl md:text-6xl leading-[1.1] text-transparent bg-clip-text bg-gradient-to-br from-white via-gray-200 to-gray-500 drop-shadow-lg">
+                        {{ lecture.title }}
+                    </h1>
+                </div>
+
+                <div class="glass-panel rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group">
+                    <div class="absolute -top-20 -right-20 w-80 h-80 bg-omiRed/10 blur-[120px] rounded-full pointer-events-none group-hover:bg-omiRed/15 transition-colors duration-700"></div>
+                    <article class="content-text relative z-10">
+                        {{ lecture.content | safe }}
+                    </article>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 sticky top-8 space-y-6">
+
+                <div class="glass-panel rounded-[2rem] p-6">
+
+                    <div class="aspect-video w-full rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] mb-6 flex items-center justify-center border border-white/5 shadow-inner relative overflow-hidden group cursor-default">
+                        <div class="absolute inset-0 bg-noise-bg opacity-20"></div>
+                        <div class="text-6xl transform group-hover:scale-110 transition-transform duration-500 ease-out grayscale group-hover:grayscale-0">
+                             {% if lecture.subject == 'Информатика' %} 💻
+                            {% elif lecture.subject == 'Социология' %} 📐
+                            {% else %} 💎 {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 mb-6 pb-6 border-b border-white/5">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-omiRed to-purple-900 p-[2px] shadow-lg">
+                            <div class="w-full h-full rounded-full bg-black flex items-center justify-center text-white font-display font-bold">
+                                {{ lecture.author[0] }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-display font-bold text-lg">{{ lecture.author }}</span>
+                                <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            </div>
+                            <p class="text-[10px] uppercase text-gray-500 tracking-wider">Verified Author</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs uppercase text-gray-500 font-bold tracking-widest">Рейтинг</span>
+                        <div class="flex text-omiRed text-sm">★★★★★</div>
+                    </div>
+                    <div class="w-full bg-gray-800 h-1.5 rounded-full mb-8 overflow-hidden">
+                        <div class="bg-omiRed h-full w-[92%] shadow-[0_0_10px_#ff3b30]"></div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button class="relative w-full group overflow-hidden rounded-xl bg-white text-black p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-glow-white active:scale-[0.98]">
+                            <div class="absolute inset-0 bg-gradient-to-r from-gray-100 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div class="relative flex justify-center items-center gap-3 font-display font-bold text-sm tracking-wide">
+                                <span>СКАЧАТЬ КОНСПЕКТ</span>
+                                <svg class="w-4 h-4 transition-transform group-hover:translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            </div>
+                        </button>
+
+                        <button class="w-full group rounded-xl border border-white/10 bg-white/5 p-4 text-gray-400 transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-lg active:scale-[0.98]">
+                            <div class="flex justify-center items-center gap-3 font-medium text-sm">
+                                <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                <span>В закладки</span>
+                            </div>
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="glass-panel rounded-[2rem] p-6 flex flex-col items-center text-center">
+                    <p class="text-[10px] uppercase tracking-widest text-gray-600 mb-2">Скоро</p>
+                    <p class="text-sm text-gray-400">Генерация тестов по этой лекции</p>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="py-12 text-center relative z-10">
+        <p class="text-[10px] uppercase tracking-[0.3em] text-gray-600 font-medium">OmiLab © 2026</p>
+    </footer>
+
+</body>
+</html>

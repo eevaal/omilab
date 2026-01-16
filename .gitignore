@@ -1,0 +1,32 @@
+# --- Python (База) ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual Environment (Твои библиотеки) ---
+venv/
+env/
+.venv/
+
+# --- IDE (Настройки PyCharm) ---
+.idea/
+*.iml
+
+# --- Environment Variables (СЕКРЕТЫ!!!) ---
+.env
+.env.local
+
+# --- Database (Локальная база данных) ---
+*.db
+*.sqlite3
+
+# --- macOS Junk (Мусор с Мака) ---
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# --- Windows Junk (Мусор с Винды) ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
