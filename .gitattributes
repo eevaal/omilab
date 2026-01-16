@@ -1,0 +1,3 @@
+omilab-application/templates/* linguist-vendored
+omilab-application/templates/*.css linguist-vendored
+omilab-application/templates/*.js linguist-vendored
