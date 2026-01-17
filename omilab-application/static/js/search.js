@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(`/api/search?q=${query}`);
+            const response = await fetch(`/api/v1/lectures/search?q=${query}`);
             if (!response.ok) throw new Error('Network error');
             const lectures = await response.json();
 
