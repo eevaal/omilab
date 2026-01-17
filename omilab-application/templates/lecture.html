@@ -112,7 +112,28 @@
                 <div class="glass-panel rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group">
                     <div class="absolute -top-20 -right-20 w-80 h-80 bg-omiRed/10 blur-[120px] rounded-full pointer-events-none group-hover:bg-omiRed/15 transition-colors duration-700"></div>
                     <article class="content-text relative z-10">
+
+                        {% if lecture.content == 'Загруженный PDF файл' and lecture.filename %}
+
+                        <div class="w-full h-[800px] rounded-2xl overflow-hidden border border-white/10 bg-[#1a1a1a] shadow-2xl">
+                            <embed
+                                src="/static/lectures/{{ lecture.filename }}#zoom=80"
+                                type="application/pdf"
+                                class="w-full h-full"
+                            />
+                        </div>
+
+                        <p class="mt-4 text-center text-gray-500 text-xs md:hidden">
+                            Если PDF не отображается, <a href="/static/lectures/{{ lecture.filename }}" target="_blank"
+                                                         class="text-omiRed underline">нажмите сюда</a>.
+                        </p>
+
+                        {% else %}
+
                         {{ lecture.content | safe }}
+
+                        {% endif %}
+
                     </article>
                 </div>
             </div>
@@ -154,20 +175,40 @@
                     </div>
 
                     <div class="space-y-3">
-                        <button class="relative w-full group overflow-hidden rounded-xl bg-white text-black p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-glow-white active:scale-[0.98]">
+
+                        {% if lecture.filename %}
+                        <a href="/api/v1/lectures/download/{{ lecture.filename }}" download
+                           class="relative block w-full group overflow-hidden rounded-xl bg-white text-black p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-glow-white active:scale-[0.98] text-center">
                             <div class="absolute inset-0 bg-gradient-to-r from-gray-100 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div class="relative flex justify-center items-center gap-3 font-display font-bold text-sm tracking-wide">
                                 <span>СКАЧАТЬ КОНСПЕКТ</span>
-                                <svg class="w-4 h-4 transition-transform group-hover:translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <svg class="w-4 h-4 transition-transform group-hover:translate-y-1" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                            </div>
+                        </a>
+                        {% else %}
+                        <button disabled
+                                class="relative w-full opacity-50 cursor-not-allowed group overflow-hidden rounded-xl bg-white text-black p-4">
+                            <div class="relative flex justify-center items-center gap-3 font-display font-bold text-sm tracking-wide">
+                                <span>PDF НЕДОСТУПЕН</span>
                             </div>
                         </button>
+                        {% endif %}
 
                         <button class="w-full group rounded-xl border border-white/10 bg-white/5 p-4 text-gray-400 transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-lg active:scale-[0.98]">
                             <div class="flex justify-center items-center gap-3 font-medium text-sm">
-                                <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                                </svg>
                                 <span>В закладки</span>
                             </div>
                         </button>
+
                     </div>
 
                 </div>

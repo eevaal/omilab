@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Создать лекцию — OmiLab Creator</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Unbounded:wght@400;600;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -19,81 +18,64 @@
             }
         }
     </script>
-
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
-        /* Перекрашиваем редактор в темную тему */
-        .ql-toolbar {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.1) !important;
-            border-top-left-radius: 1rem;
-            border-top-right-radius: 1rem;
-        }
-        .ql-container {
-            background: rgba(15, 15, 16, 0.6);
-            backdrop-filter: blur(20px);
-            border-color: rgba(255, 255, 255, 0.1) !important;
-            border-bottom-left-radius: 1rem;
-            border-bottom-right-radius: 1rem;
-            color: #d1d5db; /* Цвет текста */
-            font-family: 'Inter', sans-serif;
-            font-size: 1.125rem;
-        }
-
-        /* Цвет плейсхолдера (текст "Пиши здесь свой шедевр...") */
-        .ql-editor.ql-blank::before {
-            color: #ffffff !important;
-            font-style: normal;
-        }
-
-        /* Цвет иконок в редакторе */
-        .ql-snow .ql-stroke { stroke: #9ca3af; }
-        .ql-snow .ql-fill { fill: #9ca3af; }
-        .ql-snow .ql-picker { color: #9ca3af; }
-
-        /* Скроллбар */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        .ql-toolbar { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1) !important; border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
+        .ql-container { background: rgba(15, 15, 16, 0.6); backdrop-filter: blur(20px); border-color: rgba(255, 255, 255, 0.1) !important; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; color: #d1d5db; font-family: 'Inter', sans-serif; font-size: 1.125rem; }
+        .ql-editor.ql-blank::before { color: #ffffff !important; font-style: normal; }
+        .ql-snow .ql-stroke { stroke: #9ca3af; } .ql-snow .ql-fill { fill: #9ca3af; } .ql-snow .ql-picker { color: #9ca3af; }
     </style>
 </head>
 <body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white min-h-screen flex items-center justify-center p-6 font-sans">
 
     <div class="w-full max-w-4xl bg-[#0f0f10]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative">
-
         <h1 class="font-display font-bold text-3xl mb-8 text-center">Новая лекция 💎</h1>
 
         <form id="create-form" class="space-y-6">
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Название</label>
-                    <input type="text" id="title" required
-                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors"
-                        placeholder="Введение в матанализ">
+                    <input type="text" id="title" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors" placeholder="Название лекции">
                 </div>
-
                 <div>
                     <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Предмет</label>
-                    <input type="text" id="subject" required
-                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors"
-                        placeholder="Математика">
+                    <input type="text" id="subject" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors" placeholder="Предмет">
                 </div>
             </div>
 
             <div>
                 <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Автор</label>
-                <input type="text" id="author" required
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors"
-                    placeholder="evaal">
+                <input type="text" id="author" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors" placeholder="Ваш никнейм">
             </div>
 
-            <div>
+            <div class="flex items-center gap-3 py-4 border-t border-b border-white/5 my-4">
+                <input type="checkbox" id="upload-mode" class="w-5 h-5 accent-omiRed rounded cursor-pointer">
+                <label for="upload-mode" class="cursor-pointer select-none text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                    Загрузить готовый PDF файл вместо написания текста
+                </label>
+            </div>
+
+            <div id="upload-block" class="hidden animate-fade-in">
+                <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Файл лекции (PDF)</label>
+                <div class="relative w-full h-40 border-2 border-dashed border-white/20 rounded-xl hover:border-omiRed/50 transition-all bg-white/5 flex flex-col items-center justify-center cursor-pointer group hover:bg-white/10">
+                    <input type="file" id="pdf-file" accept="application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    <div class="text-center pointer-events-none flex flex-col items-center">
+                        <svg class="w-10 h-10 text-gray-500 mb-3 group-hover:text-omiRed transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <p class="text-sm text-gray-400 group-hover:text-white transition-colors font-medium" id="file-name-display">
+                            Нажми или перетащи PDF сюда
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="editor-block">
                 <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Контент лекции</label>
                 <div id="editor" style="height: 300px;"></div>
             </div>
 
-            <button type="submit" class="w-full bg-white text-black font-display font-bold py-4 rounded-xl hover:bg-omiRed hover:text-white transition-all shadow-lg text-lg">
+            <button type="submit" class="w-full bg-white text-black font-display font-bold py-4 rounded-xl hover:bg-omiRed hover:text-white transition-all shadow-lg text-lg transform hover:scale-[1.01] active:scale-[0.99]">
                 Опубликовать
             </button>
         </form>
@@ -101,48 +83,77 @@
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
-        // 1. Инициализируем редактор
+        // 1. Инициализация редактора
         var quill = new Quill('#editor', {
             theme: 'snow',
             placeholder: 'Пиши здесь свой шедевр...',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['blockquote', 'code-block'],
-                    ['link', 'clean']
-                ]
+            modules: { toolbar: [ [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['blockquote', 'code-block'], ['link', 'clean'] ] }
+        });
+
+        // Элементы DOM
+        const uploadModeCheckbox = document.getElementById('upload-mode');
+        const editorBlock = document.getElementById('editor-block');
+        const uploadBlock = document.getElementById('upload-block');
+        const fileInput = document.getElementById('pdf-file');
+        const fileNameDisplay = document.getElementById('file-name-display');
+
+        // 2. Логика переключения (Скрываем редактор, показываем загрузку)
+        uploadModeCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                editorBlock.classList.add('hidden');   // Спрятать редактор
+                uploadBlock.classList.remove('hidden'); // Показать загрузку
+            } else {
+                editorBlock.classList.remove('hidden'); // Показать редактор
+                uploadBlock.classList.add('hidden');    // Спрятать загрузку
             }
         });
 
-        // 2. Логика отправки формы
+        // 3. Отображение имени файла
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileNameDisplay.textContent = "Выбран файл: " + e.target.files[0].name;
+                fileNameDisplay.classList.add('text-omiRed');
+            } else {
+                fileNameDisplay.textContent = "Нажми или перетащи PDF сюда";
+                fileNameDisplay.classList.remove('text-omiRed');
+            }
+        });
+
+        // 4. Отправка формы
         document.getElementById('create-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Собираем данные
-            const data = {
-                title: document.getElementById('title').value,
-                subject: document.getElementById('subject').value,
-                author: document.getElementById('author').value,
-                content: quill.root.innerHTML // <--- ВОТ ТУТ МЫ БЕРЕМ HTML ИЗ РЕДАКТОРА
-            };
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('subject', document.getElementById('subject').value);
+            formData.append('author', document.getElementById('author').value);
+
+            // Проверяем режим
+            if (uploadModeCheckbox.checked) {
+                // Если режим файла - берем файл
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Пожалуйста, выберите PDF файл!');
+                    return;
+                }
+                formData.append('file', file);
+            } else {
+                // Если режим текста - берем текст из Quill
+                formData.append('content', quill.root.innerHTML);
+            }
 
             try {
-                const response = await fetch('/api/v1/lectures', {
+                const response = await fetch('/api/v1/lectures/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
+                    body: formData
                 });
 
                 if (response.ok) {
                     const result = await response.json();
-                    alert('Успешно! ID: ' + result.id);
-                    window.location.href = `/lecture/${result.id}`; // Редирект на готовую лекцию
+                    window.location.href = `/lecture/${result.id}`;
                 } else {
-                    alert('Ошибка при сохранении');
+                    const err = await response.json();
+                    alert('Ошибка: ' + (err.detail || 'Не удалось сохранить'));
                 }
             } catch (error) {
                 console.error(error);

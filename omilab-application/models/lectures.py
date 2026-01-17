@@ -19,3 +19,5 @@ class Lecture(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     content: Mapped[str | None] = mapped_column()
+
+    filename: Mapped[str] = mapped_column(nullable=True)

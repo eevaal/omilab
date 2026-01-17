@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 # Базовая схема
@@ -17,6 +19,7 @@ class LectureCreate(LectureBase):
 class LectureResponse(LectureBase):
     id: int
     content: str | None = None
+    filename: Optional[str] = None
 
     class Config:
         from_attributes = True

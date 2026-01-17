@@ -6,17 +6,14 @@ from models.lectures import Lecture
 from schemas.lectures import LectureCreate
 
 
-async def create_lecture(db: AsyncSession, lecture: LectureCreate):
-    # Мы создаем объект базы данных из того, что прислал фронт
+async def create_lecture(db: AsyncSession, lecture: LectureCreate, filename: str = None):
     db_lecture = Lecture(
         title=lecture.title,
-        subject=lecture.subject,
+        content=lecture.content,
         author=lecture.author,
-
-        # ВОТ ЭТОЙ СТРОКИ СКОРЕЕ ВСЕГО НЕ ХВАТАЕТ:
-        content=lecture.content
+        subject=lecture.subject,
+        filename=filename
     )
-
     db.add(db_lecture)
     await db.commit()
     await db.refresh(db_lecture)
