@@ -8,6 +8,8 @@ from database.database import engine, Base
 from database.dependencies import db_dependency
 from api.v1.lectures import router as lectures_router
 
+from fastapi.responses import HTMLResponse
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -38,6 +40,10 @@ async def read_root(request: Request, db: db_dependency):
 @app.get("/create")
 async def create_page(request: Request):
     return templates.TemplateResponse("create.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 
 @app.get("/lecture/{id}")
