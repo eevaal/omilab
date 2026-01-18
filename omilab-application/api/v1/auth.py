@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from core.security import get_password_hash
+from core.security import get_password_hash, verify_password
 from database.dependencies import db_dependency
 from models.users import User
 from schemas.users import UserResponse, UserCreate
@@ -37,3 +37,18 @@ async def register(user_data: UserCreate, db: db_dependency):
     await db.refresh(new_user)
 
     return new_user
+
+
+@router.post("/login")
+async def login(user_data: UserCreate, db: db_dependency):
+    # 1. Ищем юзера
+    query = select(User).where(User.username == user_data.username)
+    result = await db.execute(query)
+    user = result.scalars().first()
+
+    # 2. Проверяем существование и пароль
+    if not user or not verify_password(user_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Неверное имя пользователя или пароль")
+
+    # В будущем здесь будем выдавать Token, сейчас просто пускаем
+    return {"status": "ok", "message": "Успешный вход"}
