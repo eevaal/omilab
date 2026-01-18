@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/evaal/omilab">
-    <img src="static/images/OmiClearDark.png" alt="Logo" width="120" height="120">
+    <img src="omilab-application/static/images/OmiClearDark.png" alt="Logo" width="120" height="120">
   </a>
 
   <h1 align="center">OmiLab 💎</h1>
