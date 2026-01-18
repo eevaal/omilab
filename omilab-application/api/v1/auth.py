@@ -4,7 +4,7 @@ from sqlalchemy import select
 from core.security import get_password_hash, verify_password
 from database.dependencies import db_dependency
 from models.users import User
-from schemas.users import UserResponse, UserCreate
+from schemas.users import UserResponse, UserCreate, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -40,7 +40,7 @@ async def register(user_data: UserCreate, db: db_dependency):
 
 
 @router.post("/login")
-async def login(user_data: UserCreate, db: db_dependency):
+async def login(user_data: UserLogin, db: db_dependency):
     # 1. Ищем юзера
     query = select(User).where(User.username == user_data.username)
     result = await db.execute(query)

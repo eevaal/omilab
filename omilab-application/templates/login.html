@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — OmiLab</title>
+    <link rel="icon" type="image/png" href="/static/images/OmiClearDark.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Unbounded:wght@400;600;900&display=swap"
+          rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {darkbg: '#050505', omiRed: '#ff3b30'},
+                    fontFamily: {sans: ['Inter', 'sans-serif'], display: ['Unbounded', 'sans-serif']},
+                    backgroundImage: {'noise-bg': "url('/static/images/bg_omi_noise.png')"},
+                    boxShadow: {'glow-white': '0 0 20px rgba(255, 255, 255, 0.15)'}
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white min-h-screen flex items-center justify-center p-6 font-sans relative overflow-hidden">
+
+<div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-omiRed/10 blur-[150px] rounded-full pointer-events-none"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none"></div>
+
+<div class="w-full max-w-[400px] relative z-10">
+
+    <div class="text-center mb-8">
+        <a href="/" class="inline-block hover:scale-105 transition-transform duration-300">
+            <img src="/static/images/OmiClearDark.png" alt="OmiLab"
+                 class="w-24 h-24 mx-auto mb-4 drop-shadow-2xl opacity-90">
+        </a>
+        <h1 class="font-display font-black text-3xl tracking-tight mb-2">OmiLab ID</h1>
+        <p class="text-gray-500 text-xs uppercase tracking-widest font-medium">Единый аккаунт доступа</p>
+    </div>
+
+    <div class="bg-[#0f0f10]/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl">
+        <form id="login-form" class="space-y-5">
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Имя пользователя</label>
+                <input type="text" id="username" required
+                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
+                       placeholder="username">
+            </div>
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Email</label>
+                <input type="email" id="email" required
+                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
+                       placeholder="student@omilab.ru">
+            </div>
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Пароль</label>
+                <input type="password" id="password" required
+                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
+                       placeholder="••••••••">
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-white text-black font-display font-bold py-3.5 rounded-xl hover:bg-gray-200 transition-all shadow-glow-white text-sm uppercase tracking-wide mt-2">
+                Войти
+            </button>
+        </form>
+    </div>
+
+    <div class="mt-8 text-center">
+        <p class="text-sm text-gray-500">
+            Еще нет аккаунта?
+            <a href="/register" class="text-white font-bold hover:text-omiRed transition-colors ml-1">Регистрация</a>
+        </p>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // 1. Собираем данные
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+
+
+        try {
+            // 4. Стучимся на сервер
+            const response = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({username, email, password })
+            });
+
+            // 5. Обрабатываем ответ
+            if (response.ok) {
+                const data = await response.json();
+                // УСПЕХ: Перекидываем на вход
+                window.location.href = "/profile/" + username;
+            } else {
+                // ОШИБКА: Сервер вернул 400 или 422
+                const errorData = await response.json();
+                // Если ошибка сложная (список), берем первую, иначе detail
+                const msg = Array.isArray(errorData.detail)
+                            ? errorData.detail[0].msg
+                            : errorData.detail;
+                alert('Ошибка: ' + msg);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Ошибка соединения с сервером. Бэкенд запущен?');
+        }
+    });
+</script>
+</body>
+</html>
