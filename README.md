@@ -35,6 +35,18 @@
   <img src="omilab-application/static/images/register_demo.png" alt="Screenshot" width="100%" style="border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
 </div>
 
+<div align="center">
+  <img src="omilab-application/static/images/index_demo.png" alt="Screenshot" width="100%" style="border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+</div>
+
+<div align="center">
+  <img src="omilab-application/static/images/lecture_demo.png" alt="Screenshot" width="100%" style="border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+</div>
+
+<div align="center">
+  <img src="omilab-application/static/images/profile_demo.png" alt="Screenshot" width="100%" style="border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+</div>
+
 ## 🚀 Фичи
 
 ### 📝 Гибридная система контента
