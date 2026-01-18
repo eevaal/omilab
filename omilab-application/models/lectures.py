@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -16,7 +16,7 @@ class Lecture(Base):
 
     author: Mapped[str] = mapped_column(default="Admin")
 
-    created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     content: Mapped[str | None] = mapped_column()
 

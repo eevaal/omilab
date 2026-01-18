@@ -6,7 +6,9 @@ from fastapi.staticfiles import StaticFiles
 from database import crud
 from database.database import engine, Base
 from database.dependencies import db_dependency
+
 from api.v1.lectures import router as lectures_router
+from api.v1.auth import router as auth_router
 
 from fastapi.responses import HTMLResponse
 
@@ -23,6 +25,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 app.include_router(lectures_router)
+app.include_router(auth_router, prefix="/api/v1")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
