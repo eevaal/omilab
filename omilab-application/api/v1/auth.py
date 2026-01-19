@@ -6,6 +6,9 @@ from database.dependencies import db_dependency
 from models.users import User
 from schemas.users import UserResponse, UserCreate, UserLogin
 
+from core.security import create_access_token, verify_password
+from fastapi.responses import JSONResponse
+
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post('/register', response_model=UserResponse)
@@ -41,14 +44,40 @@ async def register(user_data: UserCreate, db: db_dependency):
 
 @router.post("/login")
 async def login(user_data: UserLogin, db: db_dependency):
-    # 1. Ищем юзера
-    query = select(User).where(User.username == user_data.username)
+    # 1. Поиск юзера (как у тебя было)
+    query = select(User).where(User.username == user_data.username)  # Добавь email если надо
     result = await db.execute(query)
     user = result.scalars().first()
 
-    # 2. Проверяем существование и пароль
+    # 2. Проверка пароля
     if not user or not verify_password(user_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Неверное имя пользователя или пароль")
+        raise HTTPException(status_code=401, detail="Неверные данные")
 
-    # В будущем здесь будем выдавать Token, сейчас просто пускаем
-    return {"status": "ok", "message": "Успешный вход"}
+    # 3. СОЗДАНИЕ ТОКЕНА (Новая часть)
+    access_token = create_access_token(data={"sub": user.username})
+
+    # 4. Формируем ответ и КЛАДЕМ В КУКИ
+    response = JSONResponse(content={"status": "ok", "username": user.username})
+
+    # key="access_token" - название куки
+    # value - сам токен
+    # httponly=True - защита от кражи через JS
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        path="/"  # <--- ВОТ ЭТО ВАЖНО ДОБАВИТЬ
+    )
+
+    return response
+
+
+@router.post("/logout")
+async def logout():
+    # Создаем объект ответа вручную
+    response = JSONResponse(content={"message": "Вы успешно вышли"})
+
+    # Удаляем куку (Важно: path="/" обязателен, иначе удалится не та кука)
+    response.delete_cookie(key="access_token", path="/", httponly=True)
+
+    return response

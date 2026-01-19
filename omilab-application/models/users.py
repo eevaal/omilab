@@ -16,3 +16,5 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(index=True, default=False)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    avatar_url: Mapped[str] = mapped_column(nullable=True)

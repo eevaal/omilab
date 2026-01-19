@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ status_code }} — OmiLab</title>
+
+    <link rel="icon" type="image/png" href="/static/images/OmiClearDark.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Unbounded:wght@400;600;900&display=swap"
+          rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {darkbg: '#050505', omiRed: '#ff3b30'},
+                    fontFamily: {sans: ['Inter', 'sans-serif'], display: ['Unbounded', 'sans-serif']},
+                    backgroundImage: {'noise-bg': "url('/static/images/bg_omi_noise.png')"}
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white h-screen flex flex-col font-sans overflow-hidden selection:bg-omiRed">
+
+<nav class="w-full max-w-7xl mx-auto px-6 py-8 flex justify-center md:justify-between items-center text-[10px] md:text-xs uppercase tracking-[0.2em] font-medium text-gray-400 relative z-10">
+    <div class="hidden md:flex gap-8">
+        <a href="#" class="hover:text-white transition-colors">Поддержать</a>
+        <a href="#" class="hover:text-white transition-colors">Поиск</a>
+    </div>
+
+    <a href="/"
+       class="w-10 h-10 bg-[#1a1a1a]/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-2xl border border-white/5">
+        <img src="/static/images/OmiClearDark.png" alt="Logo" class="w-full h-full object-cover opacity-80">
+    </a>
+
+    <div class="hidden md:flex gap-8">
+        <a href="/" class="hover:text-white transition-colors">Главная</a>
+        <a href="#" class="hover:text-white transition-colors">Контакты</a>
+    </div>
+</nav>
+
+<main class="flex-grow flex flex-col items-center justify-center relative z-10 pb-20">
+
+    <div class="flex items-center justify-center font-display font-black text-[8rem] md:text-[14rem] leading-none tracking-tighter gap-2 md:gap-4 select-none
+            {% if status_code == 403 %} text-omiRed drop-shadow-[0_0_35px_rgba(255,59,48,0.4)]
+            {% elif status_code == 429 %} text-yellow-400 drop-shadow-[0_0_35px_rgba(250,204,21,0.4)]
+            {% else %} text-white {% endif %}">
+
+        <span>{{ status_code // 100 }}</span>
+
+        <div class="relative flex items-center justify-center">
+
+            {% if status_code == 500 %}
+            <div class="w-[0.8em] h-[0.8em] rounded-full border-[10px] md:border-[20px] border-white flex items-center justify-center bg-transparent">
+                <span class="text-[0.4em] font-sans font-bold text-white translate-y-1">× ×</span>
+            </div>
+
+            {% elif status_code == 503 %}
+            <div class="w-[0.8em] h-[0.8em] rounded-full border-[10px] md:border-[20px] border-white flex items-center justify-center bg-transparent">
+                <svg class="w-[0.4em] h-[0.4em] text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.7 2.302a2 2 0 0 0-2.398 0l-.822.565a5.002 5.002 0 0 0-1.85 2.68l-.208.97a3 3 0 0 1-2.937 2.37l-.968.01a5.002 5.002 0 0 0-3.153 1.258l-.582.528a2 2 0 0 0-.095 2.87l4.606 4.908a2 2 0 0 0 2.808.106l.542-.51a5.002 5.002 0 0 0 1.348-3.116l.044-.967a3 3 0 0 1 2.336-2.83l.977-.17a5.002 5.002 0 0 0 2.76-1.74l.59-.783a2 2 0 0 0-.096-2.87l-2.9-2.78zM7.222 17.788l-4.426 4.426a1.5 1.5 0 0 0 2.122 2.122l4.426-4.426-2.122-2.122z"></path>
+                </svg>
+            </div>
+
+            {% else %}
+            <span>{{ (status_code // 10) % 10 }}</span>
+            {% endif %}
+        </div>
+
+        <span>{{ status_code % 10 }}</span>
+    </div>
+
+    <div class="text-center mt-4 md:mt-8 space-y-2">
+
+        {% if status_code == 404 %}
+        <div class="font-display text-xl md:text-3xl font-medium tracking-wide">
+            lim f(x) = <span class="font-sans">∅</span>
+        </div>
+        <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest mt-1">x → search</p>
+
+        {% elif status_code == 403 %}
+        <div class="font-display text-xl md:text-3xl font-bold tracking-tight">Доступ ограничен администратором</div>
+
+        {% elif status_code == 429 %}
+        <div class="font-display text-xl md:text-3xl font-bold tracking-tight">Отдохни.</div>
+
+        {% elif status_code == 500 %}
+        <div class="font-display text-xl md:text-3xl font-bold tracking-tight">Сервер умер</div>
+
+        {% elif status_code == 503 %}
+        <div class="font-display text-xl md:text-3xl font-bold tracking-tight">Технические работы</div>
+
+        {% else %}
+        <div class="font-display text-xl md:text-3xl font-bold tracking-tight">{{ detail }}</div>
+        {% endif %}
+    </div>
+
+    <div class="mt-12 md:mt-16">
+        <a href="/"
+           class="group relative px-8 py-3 rounded-full border border-white/10 bg-white/5 overflow-hidden transition-all hover:border-white/30 hover:bg-white/10 active:scale-95 inline-block">
+                <span class="relative z-10 text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold text-gray-300 group-hover:text-white transition-colors">
+                    На главную
+                </span>
+        </a>
+    </div>
+
+</main>
+
+</body>
+</html>

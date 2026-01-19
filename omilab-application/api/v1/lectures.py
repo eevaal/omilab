@@ -1,15 +1,20 @@
 from typing import Sequence, Optional
-from fastapi import APIRouter, Form, File, UploadFile, HTTPException
+from fastapi import APIRouter, Form, File, UploadFile, HTTPException, Depends # <-- Добавил Depends
 from fastapi.responses import FileResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from database import crud
 from database.dependencies import db_dependency
 from schemas.lectures import LectureCreate, LectureResponse
 import os
-
-import shutil # Для сохранения файла
+import shutil
+import uuid
 
 from services.pdf_generator import PDFService
-import uuid
+
+# 👇 ИМПОРТЫ ДЛЯ ПОЛУЧЕНИЯ ЮЗЕРА
+from core.security import get_current_user
+from models.users import User
 
 router = APIRouter(prefix="/api/v1/lectures")
 
@@ -20,40 +25,38 @@ async def search_lectures(q: str, db: db_dependency):
 
 @router.post("/", response_model=LectureResponse)
 async def create_lecture(
-        # Принимаем данные как Form (для поддержки файлов), а не JSON
         title: str = Form(...),
         subject: str = Form(...),
-        author: str = Form(...),
+        # author: str = Form(...),  <-- УДАЛЕНО! Теперь мы не верим форме
         content: Optional[str] = Form(None),
-        file: Optional[UploadFile] = File(None),  # Поле для файла
-        db: db_dependency = None  # Твой db_dependency (возможно, он у тебя без default, проверь)
+        file: Optional[UploadFile] = File(None),
+        user: User = Depends(get_current_user), # <-- БЕРЕМ ЮЗЕРА ИЗ ТОКЕНА
+        db: db_dependency = None
 ):
     # 1. Генерируем имя
     filename = f"{uuid.uuid4()}.pdf"
     file_path = os.path.join("static", "lectures", filename)
 
-    # 2. Логика: Если загрузили файл -> сохраняем. Если нет -> генерируем.
+    # 2. Логика файла
     if file:
-        # Проверка расширения
         if not file.filename.endswith('.pdf'):
             raise HTTPException(status_code=400, detail="Можно загружать только PDF!")
 
-        # Сохраняем байты файла на диск
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
         content = content or "Загруженный PDF файл"
     else:
-        # Генерируем PDF, как раньше
         content = content or "Текст лекции отсутствует..."
-        pdf = PDFService(author=author, title=title)
+        # Используем user.username вместо переданного author
+        pdf = PDFService(author=user.username, title=title)
         pdf.generate(content=content, filename=filename)
 
-    # 3. Собираем объект для БД вручную (т.к. мы не использовали LectureCreate на входе)
+    # 3. Собираем объект
     lecture_data = LectureCreate(
         title=title,
         subject=subject,
-        author=author,
+        author=user.username, # <-- ПОДСТАВЛЯЕМ РЕАЛЬНОГО АВТОРА
         content=content
     )
 
