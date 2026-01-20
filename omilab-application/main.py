@@ -74,6 +74,7 @@ async def home_page(request: Request, db: db_dependency):
     # Важно: функция get_current_user_from_cookie должна быть доступна (импортирована или определена в файле)
     current_user = await get_current_user_from_cookie(request, db)
 
+
     # ОТЛАДКА: Пишем в консоль
     if current_user:
         print(f"Главная страница: Пользователь найден -> {current_user.username}")
