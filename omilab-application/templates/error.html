@@ -25,15 +25,17 @@
 <body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white h-screen flex flex-col font-sans overflow-hidden selection:bg-omiRed">
 
 <nav class="w-full max-w-7xl mx-auto px-6 py-8 flex justify-center md:justify-between items-center text-[10px] md:text-xs uppercase tracking-[0.2em] font-medium text-gray-400 relative z-10">
-    <div class="hidden md:flex gap-8">
-        <a href="#" class="hover:text-white transition-colors">Поддержать</a>
-        <a href="#" class="hover:text-white transition-colors">Поиск</a>
-    </div>
+        <div class="flex gap-8">
+            <a href="#" class="hover:text-white transition-colors">Поддержать</a>
+            <a href="#" class="hover:text-white transition-colors">Поиск</a>
+        </div>
 
-    <a href="/"
-       class="w-10 h-10 bg-[#1a1a1a]/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-2xl border border-white/5">
-        <img src="/static/images/OmiClearDark.png" alt="Logo" class="w-full h-full object-cover opacity-80">
-    </a>
+        <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <a href="/"
+               class="w-12 h-12 bg-[#1a1a1a]/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
+                <img src="/static/images/OmiClearDark.png" alt="OmiLab Logo" class="w-full h-full object-cover">
+            </a>
+        </div>
 
     <div class="hidden md:flex gap-8">
         <a href="/" class="hover:text-white transition-colors">Главная</a>

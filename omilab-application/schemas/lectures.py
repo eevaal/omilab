@@ -1,5 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 
 # Базовая схема (общие поля)
 class LectureBase(BaseModel):
@@ -14,6 +15,9 @@ class LectureBase(BaseModel):
 class LectureCreate(LectureBase):
     content: str
     author: str  # Мы добавляем его здесь, так как сервер сам его заполняет
+
+class VoteRequest(BaseModel):
+    score: int = Field(..., ge=1, le=5)
 
 
 # Схема для ОТВЕТА (что видит фронтенд)

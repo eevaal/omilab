@@ -10,13 +10,13 @@ from database import crud
 from database.database import engine, Base
 from database.dependencies import db_dependency
 
-from api.v1.lectures import router as lectures_router
+from api.v1.lectures import router as lectures_router, decrypt_text
 from api.v1.auth import router as auth_router
 from api.v1.users import router as users_router
 
 from fastapi.responses import HTMLResponse
 
-from models.lectures import Lecture
+from models.lectures import Lecture, LectureRating
 from models.users import User
 
 from fastapi.exceptions import RequestValidationError
@@ -111,25 +111,50 @@ async def register_page(request: Request):
 
 @app.get("/lecture/{id}")
 async def lecture_page(request: Request, id: int, db: db_dependency):
-    # 1. Получаем текущего посетителя (для кругляшка в углу)
+    # 1. Получаем пользователя
     current_user = await get_current_user_from_cookie(request, db)
 
-    # 2. Ищем саму лекцию
+    # 2. Ищем лекцию
     lecture = await crud.get_lecture_by_id(db, lecture_id=id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
 
-    # 3. НОВОЕ: Ищем АВТОРА этой лекции в базе (чтобы взять его аватарку)
+    lecture.content = decrypt_text(lecture.content)
+
+    # 3. Ищем автора
     query = select(User).where(User.username == lecture.author)
     result = await db.execute(query)
     author_user = result.scalars().first()
 
-    # 4. Передаем всё в шаблон
+    # 4. Ищем ЛИЧНУЮ ОЦЕНКУ (Ваша)
+    user_rating = 0
+    if current_user:
+        query_rating = select(LectureRating).where(
+            LectureRating.user_id == current_user.id,
+            LectureRating.lecture_id == id
+        )
+        res_rating = await db.execute(query_rating)
+        vote = res_rating.scalar_one_or_none()
+        if vote:
+            user_rating = vote.score
+
+    # 🔥 5. СЧИТАЕМ СРЕДНИЙ РЕЙТИНГ (Общий) 🔥
+    # SQL запрос: "Дай мне среднее число из колонки score для этой лекции"
+    query_avg = select(func.avg(LectureRating.score)).where(LectureRating.lecture_id == id)
+    res_avg = await db.execute(query_avg)
+    average_rating = res_avg.scalar() or 0.0  # Если голосов нет, будет 0.0
+
+    # Округляем до 1 знака (например 4.7)
+    average_rating = round(average_rating, 1)
+
+    # 6. Передаем всё в шаблон
     return templates.TemplateResponse("lecture.html", {
         "request": request,
         "lecture": lecture,
-        "user": current_user,  # Тот, кто смотрит (для хедера)
-        "author": author_user  # Тот, кто написал (для аватарки сбоку) <--- ВОТ ЭТОГО НЕ ХВАТАЛО
+        "user": current_user,
+        "author": author_user,
+        "user_rating": user_rating,  # Ваша оценка (для звезд)
+        "average_rating": average_rating  # Средняя оценка (для полоски)
     })
 
 # Страница входа

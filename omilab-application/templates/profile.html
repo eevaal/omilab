@@ -123,14 +123,6 @@
 
     <div class="glass-card rounded-[2.5rem] p-8 md:p-10 mb-12 relative overflow-hidden">
 
-        <button class="absolute top-6 right-8 text-gray-600 hover:text-white transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-        </button>
-
         <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
 
             {% if user and user.id == profile_user.id %}
@@ -241,11 +233,13 @@
                 </div>
             </div>
 
+            {% if not user or user.id != profile_user.id %}
             <div class="mt-10 flex justify-center md:justify-end">
                 <button class="bg-white/5 hover:bg-white/10 border border-white/5 px-8 py-3.5 rounded-2xl font-display font-bold text-[9px] uppercase tracking-widest transition-all">
                     Написать сообщение
                 </button>
             </div>
+            {% endif %}
         </div>
 
         <div class="flex justify-between items-end mb-8 px-2">

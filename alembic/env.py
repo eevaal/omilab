@@ -30,6 +30,7 @@ sys.path.insert(0, app_path)
 
 # Теперь импорт сработает, так как Python смотрит внутрь omilab-application
 from database.database import Base
+from models.users import User
 from models.lectures import Lecture
 
 config = context.config
