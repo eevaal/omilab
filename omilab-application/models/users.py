@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from sqlalchemy import func
-
 from database.database import Base
+from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column
 
+
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(index=True, primary_key=True)
     username: Mapped[str] = mapped_column(index=True, unique=True)

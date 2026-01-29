@@ -1,24 +1,20 @@
-from passlib.context import CryptContext
-
 import os
-from dotenv import load_dotenv
-from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
-
-from fastapi import Request, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from database.dependencies import db_dependency
+from dotenv import load_dotenv
+from fastapi import HTTPException, Request
+from jose import JWTError, jwt
 from models.users import User
-
-
-
+from passlib.context import CryptContext
+from sqlalchemy import select
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -53,11 +49,10 @@ async def get_current_user(request: Request, db: db_dependency):
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    # Очистка от Bearer
     scheme, _, param = token.partition(" ")
     actual_token = param if scheme.lower() == "bearer" else token
 
-    payload = decode_access_token(actual_token)  # Твоя функция декодирования
+    payload = decode_access_token(actual_token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
 

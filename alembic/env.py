@@ -1,46 +1,33 @@
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
 
+from database.database import Base
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-import asyncio
-from logging.config import fileConfig
-
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
-
-import sys
-import os
-
-# Получаем путь к текущей папке (alembic)
 current_path = os.path.dirname(os.path.abspath(__file__))
 
-# Поднимаемся на уровень выше (в корень проекта)
+
 root_path = os.path.dirname(current_path)
 
-# И добавляем путь к папке с кодом приложения!
+
 app_path = os.path.join(root_path, "omilab-application")
 
 sys.path.insert(0, app_path)
 
-# Теперь импорт сработает, так как Python смотрит внутрь omilab-application
-from database.database import Base
-from models.users import User
-from models.lectures import Lecture
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# --- УКАЗЫВАЕМ МЕТАДАТУ ---
+
 target_metadata = Base.metadata
-# --------------------------
 
 
 def run_migrations_offline() -> None:

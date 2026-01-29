@@ -207,15 +207,28 @@
                         <h2 class="font-display font-black text-3xl md:text-4xl tracking-tighter">{{
                             profile_user.username }}</h2>
                     </div>
-                    <p class="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-bold mb-6">Живая легенда</p>
+                    {% if profile_user.username == 'evaal' %}
+                    <div class="flex">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 shadow-[0_0_20px_rgba(234,179,8,0.2)] mt-4 mb-6">
+                            <svg class="w-4 h-4 text-yellow-400 drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"
+                                 fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M2 17l2.8-6.6 4.2 3.9 3-8.3 3 8.3 4.2-3.9L22 17H2z"/>
+                            </svg>
+
+                            <span class="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-yellow-400 drop-shadow-md">
+                                Живая легенда
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <div class="flex gap-8 justify-center md:justify-start">
                         <div>
-                            <p class="font-display font-bold text-lg leading-none">N/A</p>
+                            <p class="font-display font-bold text-lg leading-none">0</p>
                             <p class="text-[8px] text-gray-600 uppercase tracking-widest font-black mt-1">Подписчики</p>
                         </div>
                         <div>
-                            <p class="font-display font-bold text-lg leading-none">N/A</p>
+                            <p class="font-display font-bold text-lg leading-none">0</p>
                             <p class="text-[8px] text-gray-600 uppercase tracking-widest font-black mt-1">Подписки</p>
                         </div>
                     </div>
