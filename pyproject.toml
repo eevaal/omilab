@@ -17,3 +17,8 @@ dependencies = [
     "uvicorn[standard]>=0.40.0",
     "bcrypt==4.3.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.14",
+]

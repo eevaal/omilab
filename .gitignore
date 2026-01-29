@@ -33,3 +33,4 @@ $RECYCLE.BIN/
 
 **/static/lectures/*
 !**/static/lectures/.gitkeep
+**/static/images/avatars/*
