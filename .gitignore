@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# --- Virtual Environment (Твои библиотеки) ---
+# --- Virtual Environment (Библиотеки) ---
 venv/
 env/
 .venv/
@@ -34,3 +34,16 @@ $RECYCLE.BIN/
 **/static/lectures/*
 **/static/images/avatars/*
 !**/static/lectures/.gitkeep
+
+# --- Docker ---
+.docker/
+docker-compose.override.yml
+
+# --- uv (Менеджер пакетов) ---
+.python-version
+__pypackages__/
+.uv/
+
+# --- Logs ---
+*.log
+logs/

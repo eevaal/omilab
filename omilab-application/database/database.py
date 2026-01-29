@@ -1,15 +1,8 @@
-from pathlib import Path
-
+from core.config import settings
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-DB_PATH = BASE_DIR / "omilab.db"
-
-DATABASE_URL = f"sqlite+aiosqlite:///{DB_PATH}"
-
+DATABASE_URL = settings.database_url
 
 engine = create_async_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 

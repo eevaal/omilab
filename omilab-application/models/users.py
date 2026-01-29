@@ -1,8 +1,15 @@
 from datetime import datetime
 
 from database.database import Base
-from sqlalchemy import func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Column, ForeignKey, Table, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+subscriptions = Table(
+    "subscriptions",
+    Base.metadata,
+    Column("follower_id", ForeignKey("users.id"), primary_key=True),
+    Column("following_id", ForeignKey("users.id"), primary_key=True),
+)
 
 
 class User(Base):
@@ -18,3 +25,17 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     avatar_url: Mapped[str] = mapped_column(nullable=True)
+
+    following: Mapped[list["User"]] = relationship(
+        secondary=subscriptions,
+        primaryjoin=(id == subscriptions.c.follower_id),
+        secondaryjoin=(id == subscriptions.c.followed_id),
+        back_populates="followers",
+    )
+
+    followers: Mapped[list["User"]] = relationship(
+        secondary=subscriptions,
+        primaryjoin=(id == subscriptions.c.followed_id),
+        secondaryjoin=(id == subscriptions.c.follower_id),
+        back_populates="following",
+    )
