@@ -55,6 +55,8 @@ async def create_lecture(
         content = content or "Загруженный PDF файл"
 
     else:
+
+        os.makedirs("static/lectures", exist_ok=True)
         # Логика генерации PDF (оставляем пока локальной)
         # ⚠️ В будущем generated PDF тоже лучше лить в R2, но для беты сойдет.
         # Помни: сгенерированные файлы проживут до перезагрузки сервера!
