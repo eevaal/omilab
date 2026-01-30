@@ -8,7 +8,7 @@ subscriptions = Table(
     "subscriptions",
     Base.metadata,
     Column("follower_id", ForeignKey("users.id"), primary_key=True),
-    Column("following_id", ForeignKey("users.id"), primary_key=True),
+    Column("followed_id", ForeignKey("users.id"), primary_key=True),
 )
 
 
