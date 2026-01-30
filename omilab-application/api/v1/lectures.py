@@ -1,9 +1,10 @@
 import os
-import shutil
 import uuid
 from collections.abc import Sequence
 
 from core.security import get_current_user
+# 👇 ИМПОРТИРУЕМ НАШУ НОВУЮ ФУНКЦИЮ
+from core.storage import upload_file_to_r2
 from cryptography.fernet import Fernet
 from database import crud
 from database.dependencies import db_dependency
@@ -32,28 +33,39 @@ async def search_lectures(q: str, db: db_dependency):
 
 @router.post("/", response_model=LectureResponse)
 async def create_lecture(
-    title: str = Form(...),
-    subject: str = Form(...),
-    content: str | None = Form(None),
-    file: UploadFile | None = File(None),
-    user: User = Depends(get_current_user),
-    db: db_dependency = None,
+        title: str = Form(...),
+        subject: str = Form(...),
+        content: str | None = Form(None),
+        file: UploadFile | None = File(None),
+        user: User = Depends(get_current_user),
+        db: db_dependency = None,
 ):
-    filename = f"{uuid.uuid4()}.pdf"
-    file_path = os.path.join("static", "lectures", filename)
+    # Переменная, куда запишем ссылку (или имя файла)
+    final_filename = None
 
     if file:
         if not file.filename.endswith(".pdf"):
             raise HTTPException(status_code=400, detail="Можно загружать только PDF!")
 
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # 🔥 ГЛАВНОЕ ИЗМЕНЕНИЕ ТУТ:
+        # Вместо shutil.copyfileobj мы шлём файл в R2.
+        # Функция вернет прямую ссылку: https://pub-xyz.../lectures/uuid.pdf
+        final_filename = await upload_file_to_r2(file, folder="lectures")
 
         content = content or "Загруженный PDF файл"
+
     else:
+        # Логика генерации PDF (оставляем пока локальной)
+        # ⚠️ В будущем generated PDF тоже лучше лить в R2, но для беты сойдет.
+        # Помни: сгенерированные файлы проживут до перезагрузки сервера!
+        filename = f"{uuid.uuid4()}.pdf"
+
         content = content or "Текст лекции отсутствует..."
         pdf = PDFService(author=user.username, title=title)
         pdf.generate(content=content, filename=filename)
+
+        # Для локальных файлов оставляем просто имя
+        final_filename = filename
 
     encrypted_content = encrypt_text(content)
 
@@ -61,11 +73,19 @@ async def create_lecture(
         title=title, subject=subject, author=user.username, content=encrypted_content
     )
 
-    return await crud.create_lecture(db=db, lecture=lecture_data, filename=filename)
+    # Сохраняем в БД (теперь там может быть длинная ссылка)
+    return await crud.create_lecture(db=db, lecture=lecture_data, filename=final_filename)
 
 
-@router.get("/download/{filename}")
+# 👇 Этот метод теперь нужен ТОЛЬКО для старых/локальных файлов
+# Файлы из R2 будут открываться напрямую по ссылке
+@router.get("/download/{filename:path}")
 async def download_lecture(filename: str):
+    # Если это полная ссылка (значит файл в облаке) — редиректа тут нет,
+    # фронтенд должен сам открывать ссылку. Но на всякий случай:
+    if filename.startswith("http"):
+        return {"url": filename}
+
     file_path = os.path.join("static", "lectures", filename)
 
     if os.path.exists(file_path):
@@ -93,10 +113,10 @@ def decrypt_text(text: str) -> str:
 
 @router.post("/{id}/rate")
 async def rate_lecture(
-    id: int,
-    vote: VoteRequest,
-    db: db_dependency,
-    user: dict = Depends(get_current_user),
+        id: int,
+        vote: VoteRequest,
+        db: db_dependency,
+        user: dict = Depends(get_current_user),
 ):
     if not user:
         raise HTTPException(status_code=401, detail="Войдите, чтобы оценить")
