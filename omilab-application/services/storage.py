@@ -7,8 +7,8 @@ class StorageService:
     def __init__(self):
         # Читаем переменные напрямую через os.getenv
         self.account_id = os.getenv("R2_ACCOUNT_ID")
-        self.access_key = os.getenv("R2_ACCESS_KEY")
-        self.secret_key = os.getenv("R2_SECRET_KEY")
+        self.access_key = os.getenv("R2_ACCESS_KEY_ID")
+        self.secret_key = os.getenv("R2_SECRET_ACCESS_KEY")
         self.bucket_name = os.getenv("R2_BUCKET_NAME")
         self.public_domain = os.getenv("R2_PUBLIC_DOMAIN")
 
