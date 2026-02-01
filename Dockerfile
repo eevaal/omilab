@@ -26,4 +26,4 @@ EXPOSE 8000
 # 8. Запускаем
 # Теперь мы уже внутри папки, поэтому просто запускаем main:app
 # Python найдет файл main.py прямо рядом с собой
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
