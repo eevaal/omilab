@@ -144,16 +144,28 @@
                     {% if lecture.content == 'Загруженный PDF файл' and lecture.filename %}
 
                     <div class="w-full h-[800px] rounded-2xl overflow-hidden border border-white/10 bg-[#1a1a1a] shadow-2xl">
+                        {% if lecture.filename.startswith('http') %}
+                            <embed
+                                    src="{{ lecture.filename }}#zoom=80"
+                                    type="application/pdf"
+                                    class="w-full h-full"
+                            />
+                        {% else %}
                         <embed
-                                src="/static/lectures/{{ lecture.filename }}#zoom=80"
-                                type="application/pdf"
-                                class="w-full h-full"
-                        />
+                                    src="/static/lectures/{{ lecture.filename }}#zoom=80"
+                                    type="application/pdf"
+                                    class="w-full h-full"
+                            />
+                        {% endif %}
                     </div>
 
                     <p class="mt-4 text-center text-gray-500 text-xs md:hidden">
-                        Если PDF не отображается, <a href="/static/lectures/{{ lecture.filename }}" target="_blank"
-                                                     class="text-omiRed underline">нажмите сюда</a>.
+                        Если PDF не отображается,
+                        {% if lecture.filename.startswith('http') %}
+                            <a href="{{ lecture.filename }}" target="_blank" class="text-omiRed underline">нажмите сюда</a>.
+                        {% else %}
+                            <a href="/static/lectures/{{ lecture.filename }}" target="_blank" class="text-omiRed underline">нажмите сюда</a>.
+                        {% endif %}
                     </p>
 
                     {% else %}
@@ -359,7 +371,6 @@
         currentRating = score;
         highlightStars(score);
         updateStatusText(score);
-        // Полоску НЕ меняем, так как она показывает среднее (или можно менять, если хочешь)
 
         try {
             const response = await fetch(`/api/v1/lectures/${lectureId}/rate`, {
@@ -368,10 +379,60 @@
                 body: JSON.stringify({score: score})
             });
 
-            // Если хочешь, чтобы при клике обновлялся статус "Оценка принята" - можно добавить alert или toast
+            if (response.status === 401) {
+                showNotification("Войдите в аккаунт, чтобы оценить лекцию!", "error");
+
+                highlightStars(0);
+                return;
+            }
+
+            if (response.ok) {
+                showNotification("Спасибо за оценку!", "success");
+            } else {
+                showNotification("Что-то пошло не так", "error");
+            }
+
         } catch (e) {
-            console.error("Ошибка:", e);
+            console.error("Ошибка сети:", e);
+            showNotification("Ошибка соединения", "error");
         }
+    }
+
+    function showNotification(message, type = "success") {
+        const notification = document.createElement("div");
+        notification.innerText = message;
+
+        notification.style.position = "fixed";
+        notification.style.bottom = "20px";
+        notification.style.right = "20px";
+        notification.style.padding = "12px 24px";
+        notification.style.borderRadius = "8px";
+        notification.style.color = "#fff";
+        notification.style.fontFamily = "sans-serif";
+        notification.style.zIndex = "1000";
+        notification.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+        notification.style.transition = "opacity 0.5s, transform 0.5s";
+        notification.style.opacity = "0";
+        notification.style.transform = "translateY(20px)";
+
+        if (type === "error") {
+            notification.style.backgroundColor = "#ff3b30";
+        } else {
+            notification.style.backgroundColor = "#34c759";
+        }
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = "1";
+            notification.style.transform = "translateY(0)";
+        }, 10);
+
+        setTimeout(() => {
+            notification.style.opacity = "0";
+            notification.style.transform = "translateY(20px)";
+            setTimeout(() => notification.remove(), 500);
+        }, 3000);
     }
 </script>
 </body>

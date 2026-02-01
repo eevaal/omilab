@@ -1,17 +1,17 @@
-from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     # 1. Делаем эти поля необязательными (None),
     # чтобы приложение не падало на Koyeb, если их нет.
-    POSTGRES_USER: Optional[str] = None
-    POSTGRES_PASSWORD: Optional[str] = None
-    POSTGRES_DB: Optional[str] = None
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_DB: str | None = None
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: int = 5432
 
     # 2. Добавляем поле для полной ссылки (которую мы сунем в Koyeb)
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: str | None = None
 
     @property
     def database_url(self) -> str:
@@ -29,5 +29,6 @@ class Settings(BaseSettings):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
 
 settings = Settings()
