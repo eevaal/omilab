@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base
 
 DATABASE_URL = settings.database_url
 
-engine = create_async_engine(DATABASE_URL, echo=True, pool_pre_ping=True, pool_recycle=300)
+engine = create_async_engine(DATABASE_URL, echo=False, pool_pre_ping=True, pool_recycle=300)
 
 SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

@@ -13,7 +13,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("/me/avatar")
-async def upload_avatar(
+def upload_avatar(
     file: UploadFile = File(...),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -40,7 +40,7 @@ async def upload_avatar(
 
     # 4. Обновление базы данных (Теперь сохраняем полную ссылку на R2)
     stmt = update(User).where(User.id == user.id).values(avatar_url=avatar_url)
-    await db.execute(stmt)
-    await db.commit()
+    db.execute(stmt)
+    db.commit()
 
     return {"status": "ok", "avatar_url": avatar_url}
