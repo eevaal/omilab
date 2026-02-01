@@ -14,7 +14,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("/me/avatar")
-async def upload_avatar(  # <--- ВЕРНУЛИ ASYNC
+async def upload_avatar(
     file: UploadFile = File(...),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
