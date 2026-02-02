@@ -10,8 +10,8 @@ from models.lectures import Lecture
 router = APIRouter()
 
 
-@router.get("/{lecture_id}")
-async def get_bookmarks(
+@router.post("/{lecture_id}")
+async def toggle_bookmark(
     lecture_id: int,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(db_dependency),
