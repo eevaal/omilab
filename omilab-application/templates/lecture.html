@@ -297,14 +297,24 @@
 
                     {% endif %}
 
-                    <button class="w-full group rounded-xl border border-white/10 bg-white/5 p-4 text-gray-400 transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-lg active:scale-[0.98]">
+                    <button id="bookmark-btn"
+                            onclick="toggleBookmark({{ lecture.id }})"
+                            class="w-full group rounded-xl border p-4 transition-all duration-300 hover:shadow-lg active:scale-[0.98]
+                            {% if is_bookmarked %}
+                                border-omiRed bg-omiRed/10 text-omiRed shadow-glow-red
+                            {% else %}
+                                border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:border-white/30 hover:text-white
+                            {% endif %}">
                         <div class="flex justify-center items-center gap-3 font-medium text-sm">
-                            <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none"
+                            <svg id="bookmark-icon"
+                                 class="w-4 h-4 transition-transform group-hover:scale-110 {% if is_bookmarked %}fill-current{% else %}fill-none{% endif %}"
                                  stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                             </svg>
-                            <span>В закладки</span>
+                            <span id="bookmark-text">
+                                {% if is_bookmarked %}В избранном{% else %}В закладки{% endif %}
+                            </span>
                         </div>
                     </button>
 
@@ -443,6 +453,44 @@
             notification.style.transform = "translateY(20px)";
             setTimeout(() => notification.remove(), 500);
         }, 3000);
+    }
+
+    async function toggleBookmark(lectureId) {
+        const btn = document.getElementById('bookmark-btn');
+        const icon = document.getElementById('bookmark-icon');
+        const text = document.getElementById('bookmark-text');
+
+        try {
+            const response = await fetch(`/api/v1/bookmarks/${lectureId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.status === 401) {
+                showNotification("Войдите, чтобы сохранять лекции", "error");
+                return;
+            }
+
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.is_bookmarked) {
+                    // Включаем "активный" стиль (Красный)
+                    btn.className = "w-full group rounded-xl border border-omiRed bg-omiRed/10 text-omiRed p-4 transition-all duration-300 hover:shadow-glow-red active:scale-[0.98]";
+                    icon.classList.replace('fill-none', 'fill-current');
+                    text.innerText = "В избранном";
+                    showNotification("Добавлено в закладки", "success");
+                } else {
+                    // Возвращаем "обычный" стиль (Серый)
+                    btn.className = "w-full group rounded-xl border border-white/10 bg-white/5 p-4 text-gray-400 transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-lg active:scale-[0.98]";
+                    icon.classList.replace('fill-current', 'fill-none');
+                    text.innerText = "В закладки";
+                    showNotification("Удалено из закладок", "success");
+                }
+            }
+        } catch (e) {
+            showNotification("Ошибка соединения", "error");
+        }
     }
 </script>
 </body>

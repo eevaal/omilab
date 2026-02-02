@@ -142,12 +142,18 @@ async def lecture_page(request: Request, id: int, db: db_dependency):
 
     average_rating = round(average_rating, 1)
 
+    is_bookmarked = False
+    if current_user:
+        if lecture in current_user.bookmarks:
+            is_bookmarked = True
+
     return templates.TemplateResponse(
         "lecture.html",
         {
             "request": request,
             "lecture": lecture,
             "user": current_user,
+            "is_bookmarked": is_bookmarked,
             "author": author_user,
             "user_rating": user_rating,
             "average_rating": average_rating,
