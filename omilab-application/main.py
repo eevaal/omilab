@@ -78,10 +78,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def home_page(request: Request, db: db_dependency):
     current_user = await get_current_user_from_cookie(request, db)
 
+    # Если забанен, отдаем индекс с флагом бана
     if current_user == "BANNED":
         return templates.TemplateResponse(
             "index.html",
@@ -89,23 +90,18 @@ async def home_page(request: Request, db: db_dependency):
             status_code=403
         )
 
-    if current_user:
-        print(f"Главная страница: Пользователь найден -> {current_user.username}")
-    else:
-        print("Главная страница: Пользователь НЕ найден (Аноним)")
-
-    query = (
-        select(Lecture, User)
-        .join(User, Lecture.author == User.username)
-        .order_by(Lecture.created_at.desc())
-        .limit(3)
-    )
+    # Обычная логика
+    query = select(Lecture).order_by(Lecture.created_at.desc()).limit(6)
     result = await db.execute(query)
-    recent_lectures = result.all()
+    latest_lectures = result.scalars().all()
 
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "lectures": recent_lectures, "user": current_user},
+        {
+            "request": request,
+            "user": current_user,
+            "latest_lectures": latest_lectures,
+        },
     )
 
 
@@ -177,40 +173,35 @@ async def login_page(request: Request):
 async def profile_page(request: Request, username: str, db: db_dependency):
     current_user = await get_current_user_from_cookie(request, db)
 
-    query_user = select(User).where(User.username == username)
-    result_user = await db.execute(query_user)
-    profile_owner = result_user.scalars().first()
+    # Если текущий залогиненный юзер забанен — не пускаем его никуда
+    if current_user == "BANNED":
+        return templates.TemplateResponse(
+            "index.html",  # Или отдельный error.html
+            {"request": request, "is_banned": True},
+            status_code=403
+        )
+
+    # Логика поиска владельца профиля
+    query = select(User).where(User.username == username)
+    result = await db.execute(query)
+    profile_owner = result.scalars().first()
 
     if not profile_owner:
-        raise HTTPException(status_code=404, detail="Пользователь не найден")
+        raise HTTPException(status_code=404, detail="User not found")
 
-    query_count = select(func.count(Lecture.id)).where(Lecture.author == profile_owner.username)
-    count_result = await db.execute(query_count)
-    total_lectures = count_result.scalar()
-
-    four_days_ago = datetime.utcnow() - timedelta(days=4)
-    query_new = select(func.count(Lecture.id)).where(
-        Lecture.author == profile_owner.username, Lecture.created_at >= four_days_ago
-    )
-    new_result = await db.execute(query_new)
-    new_lectures_count = new_result.scalar()
-
-    query_lectures = (
-        select(Lecture)
-        .where(Lecture.author == profile_owner.username)
-        .order_by(Lecture.created_at.desc())
-    )
-    lectures_result = await db.execute(query_lectures)
+    # Собираем статистику
+    lectures_query = select(Lecture).where(Lecture.creator_id == profile_owner.id)
+    lectures_result = await db.execute(lectures_query)
     user_lectures = lectures_result.scalars().all()
+    total_lectures = len(user_lectures)
 
     return templates.TemplateResponse(
         "profile.html",
         {
             "request": request,
-            "user": current_user,
+            "user": current_user,  # Теперь здесь либо объект User, либо None
             "profile_user": profile_owner,
             "total_lectures": total_lectures,
-            "new_lectures_count": new_lectures_count,
             "lectures": user_lectures,
         },
     )
@@ -221,28 +212,24 @@ async def get_current_user_from_cookie(request: Request, db: AsyncSession):
     if not token:
         return None
 
-    scheme, _, param = token.partition(" ")
-    actual_token = param if scheme.lower() == "bearer" else token
+    try:
+        scheme, _, param = token.partition(" ")
+        actual_token = param if scheme.lower() == "bearer" else token
+        payload = decode_access_token(actual_token)
+        if not payload:
+            return None
 
-    payload = decode_access_token(actual_token)
-    if not payload:
+        username = payload.get("sub")
+        query = select(User).where(User.username == username)
+        result = await db.execute(query)
+        user = result.scalars().first()
+
+        if user and getattr(user, "is_banned", False):
+            return "BANNED"
+
+        return user
+    except Exception:
         return None
-
-    username = payload.get("sub")
-    if not username:
-        return None
-
-
-    query = select(User).where(User.username == username)
-    result = await db.execute(query)
-    user = result.scalars().first()
-
-    if user and user.is_banned:
-        return "BANNED"
-
-
-    return user
-
 
 
 
