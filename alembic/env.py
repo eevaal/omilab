@@ -9,38 +9,53 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
+# ------------------------------------------------------------------------
+# 1. НАСТРОЙКА ПУТЕЙ (Чтобы Alembic видел твои папки)
+# ------------------------------------------------------------------------
 current_path = os.path.dirname(os.path.abspath(__file__))
-
 root_path = os.path.dirname(current_path)
 
-
+# Если папка с кодом называется omilab-application, добавляем её в путь
 app_path = os.path.join(root_path, "omilab-application")
-
 sys.path.insert(0, app_path)
+sys.path.insert(0, root_path)  # На всякий случай добавляем и корень
 
-
+# ------------------------------------------------------------------------
+# 2. ЧТЕНИЕ КОНФИГА И ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
+# ------------------------------------------------------------------------
 config = context.config
+
+# Перехватываем DATABASE_URL из терминала/системы
+# Это исправит ошибку "Context impl SQLiteImpl"
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    # Важно: Для этого скрипта (async) ссылка должна быть с +asyncpg
+    config.set_main_option("sqlalchemy.url", db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from database.database import Base  # noqa: E402
+# ------------------------------------------------------------------------
+# 3. ИМПОРТ МОДЕЛЕЙ (Самая важная часть для autogenerate)
+# ------------------------------------------------------------------------
+# Сначала импортируем Base
+from database.database import Base
 
+# Потом ВСЕ модели, которые должны попасть в миграцию
+from models.users import User
+from models.lectures import Lecture
+from models.bookmarks import bookmarks_table
+
+# Привязываем метаданные
 target_metadata = Base.metadata
+
+# ------------------------------------------------------------------------
+# 4. ЛОГИКА МИГРАЦИЙ (OFFLINE / ONLINE)
+# ------------------------------------------------------------------------
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
-    """
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -61,11 +76,9 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    """In this scenario we need to create an Engine
-    and associate a connection with the context.
+    """Run migrations in 'online' mode using Async engine."""
 
-    """
-
+    # Создаем асинхронный движок на основе URL из конфига
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -80,7 +93,6 @@ async def run_async_migrations() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-
     asyncio.run(run_async_migrations())
 
 

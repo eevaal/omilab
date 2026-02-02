@@ -4,6 +4,8 @@ from database.database import Base
 from sqlalchemy import Column, ForeignKey, Table, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from models.bookmarks import bookmarks_table
+
 subscriptions = Table(
     "subscriptions",
     Base.metadata,
@@ -38,4 +40,8 @@ class User(Base):
         primaryjoin=(id == subscriptions.c.followed_id),
         secondaryjoin=(id == subscriptions.c.follower_id),
         back_populates="following",
+    )
+
+    bookmarks = relationship(
+        "Lecture", secondary=bookmarks_table, backref="bookmarked_by", lazy="selectin"
     )

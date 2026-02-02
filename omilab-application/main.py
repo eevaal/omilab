@@ -17,9 +17,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from models.lectures import Lecture, LectureRating
 from models.users import User
+from models.bookmarks import bookmarks_table
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from api.v1.bookmarks import router as bookmarks_router
 
 
 @asynccontextmanager
@@ -60,6 +63,7 @@ async def internal_server_error_handler(request: Request, exc: Exception):
 app.include_router(lectures_router)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
+app.include_router(bookmarks_router, prefix="/api/v1/bookmarks")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
