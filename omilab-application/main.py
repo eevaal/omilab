@@ -83,11 +83,11 @@ async def home_page(request: Request, db: db_dependency):
     current_user = await get_current_user_from_cookie(request, db)
 
     if current_user == "BANNED":
-        return templates.TemplateResponse("error.html", {
-            "request": request,
-            "status_code": 403,
-            "detail": "Твой аккаунт заблокирован. По вопросам разбана — в ЛС."
-        }, status_code=403)
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "is_banned": True},
+            status_code=403
+        )
 
     if current_user:
         print(f"Главная страница: Пользователь найден -> {current_user.username}")
@@ -232,9 +232,18 @@ async def get_current_user_from_cookie(request: Request, db: AsyncSession):
     if not username:
         return None
 
+
     query = select(User).where(User.username == username)
     result = await db.execute(query)
-    return result.scalars().first()
+    user = result.scalars().first()
+
+    if user and user.is_banned:
+        return "BANNED"
+
+
+    return user
+
+
 
 
 MAINTENANCE_MODE = os.getenv("IS_MAINTENANCE", "false").lower() == "true"
