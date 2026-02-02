@@ -24,6 +24,8 @@ class User(Base):
 
     is_verified: Mapped[bool] = mapped_column(index=True, default=False)
 
+    is_banned: Mapped[bool] = mapped_column(default=False, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     avatar_url: Mapped[str] = mapped_column(nullable=True)

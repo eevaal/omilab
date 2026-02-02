@@ -82,6 +82,13 @@ templates = Jinja2Templates(directory="templates")
 async def home_page(request: Request, db: db_dependency):
     current_user = await get_current_user_from_cookie(request, db)
 
+    if current_user == "BANNED":
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "status_code": 403,
+            "detail": "Твой аккаунт заблокирован. По вопросам разбана — в ЛС."
+        }, status_code=403)
+
     if current_user:
         print(f"Главная страница: Пользователь найден -> {current_user.username}")
     else:
@@ -244,5 +251,21 @@ async def maintenance_middleware(request: Request, call_next):
         return templates.TemplateResponse(
             "error.html", {"request": request, "status_code": 503}, status_code=503
         )
+
+    return await call_next(request)
+
+@app.middleware("http")
+async def ban_check_middleware(request: Request, call_next):
+    # Пропускаем статику, чтобы страница ошибки загрузилась красиво
+    if request.url.path.startswith("/static"):
+        return await call_next(request)
+
+    # Получаем БД из стейта или создаем сессию (зависит от твоей настройки)
+    # Для простоты проверим куку напрямую
+    token = request.cookies.get("access_token")
+    if token:
+        # Здесь можно быстро проверить флаг в БД,
+        # но проще проверять это в самих роутерах через user == "BANNED"
+        pass
 
     return await call_next(request)

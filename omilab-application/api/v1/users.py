@@ -40,3 +40,6 @@ async def upload_avatar(
     await db.commit()
 
     return {"status": "ok", "avatar_url": avatar_url}
+
+
+
