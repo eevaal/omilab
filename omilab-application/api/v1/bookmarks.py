@@ -13,8 +13,8 @@ router = APIRouter()
 @router.post("/{lecture_id}")
 async def toggle_bookmark(
     lecture_id: int,
+    db: db_dependency,
     current_user: User = Depends(get_current_user),
-    db: db_dependency = Depends(),
 ):
     lecture = await db.get(Lecture, lecture_id)
     if not lecture:
