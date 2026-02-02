@@ -14,7 +14,7 @@ router = APIRouter()
 async def toggle_bookmark(
     lecture_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(db_dependency),
+    db: db_dependency = Depends(),
 ):
     lecture = await db.get(Lecture, lecture_id)
     if not lecture:
