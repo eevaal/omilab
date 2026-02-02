@@ -39,7 +39,16 @@ print(f"Все ключи: {list(os.environ.keys())[-5:]}")
 print(f"Значение MAINTENANCE_MODE: {os.getenv('MAINTENANCE_MODE')}")
 print("--------------------")
 
-app = FastAPI(lifespan=lifespan)
+docs_url = None if os.environ.get("RENDER") else "/docs"
+redoc_url = None if os.environ.get("RENDER") else "/redoc"
+openapi_url = None if os.environ.get("RENDER") else "/openapi.json"
+
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url
+)
 
 
 @app.exception_handler(StarletteHTTPException)
