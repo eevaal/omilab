@@ -7,7 +7,7 @@ from core.security import (
     decode_access_token,
 )
 from database.dependencies import db_dependency
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, BackgroundTasks # <--- ИМПОРТ BackgroundTasks
 from fastapi.responses import JSONResponse
 from models.users import User
 from schemas.users import UserCreate, UserLogin, UserResponse
@@ -27,8 +27,12 @@ class VerifyEmailRequest(BaseModel):
 
 
 @router.post("/register")
-async def register(user_data: UserCreate, db: db_dependency):
-    # Проверки на существование (без изменений)
+async def register(
+    user_data: UserCreate,
+    db: db_dependency,
+    background_tasks: BackgroundTasks # <--- Добавляем в аргументы
+):
+    # Проверки на существование
     q_username = select(User).where(User.username == user_data.username)
     if (await db.execute(q_username)).scalars().first():
         raise HTTPException(status_code=400, detail="Пользователь с данным именем уже существует")
@@ -46,25 +50,23 @@ async def register(user_data: UserCreate, db: db_dependency):
         username=user_data.username,
         email=user_data.email,
         hashed_password=hashed_pwd,
-        email_confirmed=False,  # <-- ДОСТУП ЗАКРЫТ
-        confirmation_code=activation_code  # <-- Сохраняем код
+        email_confirmed=False,
+        confirmation_code=activation_code
     )
 
     db.add(new_user)
     await db.commit()
-    await db.refresh(new_user)
+    # await db.refresh(new_user) # Убираем лишний запрос для скорости
 
-    # Отправляем письмо
-    try:
-        await send_confirmation_code(user_data.email, activation_code)
-    except Exception as e:
-        print(f"Ошибка отправки почты: {e}")
-        # Не ломаем регистрацию, если почта отвалилась, но юзер узнает об этом на этапе ввода кода
+    # --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Отправка в фоне ---
+    # Мы просто добавляем задачу в очередь, сервер выполнит её после ответа юзеру
+    background_tasks.add_task(send_confirmation_code, user_data.email, activation_code)
+    # ------------------------------------------
 
     return {"message": "User created", "email": user_data.email}
 
 
-# НОВЫЙ ЭНДПОИНТ: Проверка кода
+# Остальной код без изменений
 @router.post("/verify-email")
 async def verify_email_code(data: VerifyEmailRequest, db: db_dependency):
     query = select(User).where(User.email == data.email)
@@ -78,7 +80,7 @@ async def verify_email_code(data: VerifyEmailRequest, db: db_dependency):
         return {"message": "Почта уже подтверждена"}
 
     if user.confirmation_code == data.code:
-        user.email_confirmed = True  # <-- ОТКРЫВАЕМ ДОСТУП
+        user.email_confirmed = True
         user.confirmation_code = None
         await db.commit()
         return {"message": "Успех"}
@@ -95,13 +97,11 @@ async def login(user_data: UserLogin, db: db_dependency):
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Неверные данные")
 
-    # --- НОВАЯ ЗАЩИТА ---
     if not user.email_confirmed:
         raise HTTPException(
             status_code=403,
             detail="Почта не подтверждена. Введите код, отправленный на email."
         )
-    # --------------------
 
     access_token = create_access_token(data={"sub": user.username})
     response = JSONResponse(content={"status": "ok", "username": user.username})
@@ -109,7 +109,6 @@ async def login(user_data: UserLogin, db: db_dependency):
     return response
 
 
-# Logout и get_current_user оставляем как было...
 @router.post("/logout")
 async def logout():
     response = JSONResponse(content={"message": "Вы успешно вышли"})
