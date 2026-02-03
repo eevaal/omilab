@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация — OmiLab</title>
     <link rel="icon" type="image/png" href="/static/images/OmiClearDark.png">
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Unbounded:wght@400;600;900&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Unbounded:wght@400;600;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,51 +27,56 @@
 <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none"></div>
 
 <div class="w-full max-w-[400px] relative z-10">
-
     <div class="text-center mb-8">
         <a href="/" class="inline-block hover:scale-105 transition-transform duration-300">
-            <img src="/static/images/OmiClearDark.png" alt="OmiLab"
-                 class="w-24 h-24 mx-auto mb-4 drop-shadow-2xl opacity-90">
+            <img src="/static/images/OmiClearDark.png" alt="OmiLab" class="w-24 h-24 mx-auto mb-4 drop-shadow-2xl opacity-90">
         </a>
         <h1 class="font-display font-black text-3xl tracking-tight mb-2">OmiLab ID</h1>
         <p class="text-gray-500 text-xs uppercase tracking-widest font-medium">Единый аккаунт доступа</p>
     </div>
 
-    <div class="bg-[#0f0f10]/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl">
+    <div id="register-step" class="bg-[#0f0f10]/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl transition-all duration-500">
         <form id="register-form" class="space-y-5">
-
             <div>
                 <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Имя пользователя</label>
-                <input type="text" id="username" required
-                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
-                       placeholder="username">
+                <input type="text" id="username" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors" placeholder="username">
             </div>
-
             <div>
                 <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Email</label>
-                <input type="email" id="email" required
-                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
-                       placeholder="student@omilab.ru">
+                <input type="email" id="email" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors" placeholder="student@omilab.ru">
             </div>
-
             <div>
                 <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Пароль</label>
-                <input type="password" id="password" required
-                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
-                       placeholder="••••••••">
+                <input type="password" id="password" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors" placeholder="••••••••">
             </div>
-
             <div>
-                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Повтор
-                    пароля</label>
-                <input type="password" id="confirm-password" required
-                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
-                       placeholder="••••••••">
+                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-bold ml-1">Повтор пароля</label>
+                <input type="password" id="confirm-password" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors" placeholder="••••••••">
             </div>
-
-            <button type="submit"
-                    class="w-full bg-white text-black font-display font-bold py-3.5 rounded-xl hover:bg-gray-200 transition-all shadow-glow-white text-sm uppercase tracking-wide mt-2">
+            <button type="submit" class="w-full bg-white text-black font-display font-bold py-3.5 rounded-xl hover:bg-gray-200 transition-all shadow-glow-white text-sm uppercase tracking-wide mt-2">
                 Создать аккаунт
+            </button>
+        </form>
+    </div>
+
+    <div id="verify-step" class="hidden bg-[#0f0f10]/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl transition-all duration-500 text-center">
+        <div class="mb-6">
+            <div class="w-16 h-16 bg-omiRed/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ff3b30" class="w-8 h-8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+            </div>
+            <h2 class="font-display font-bold text-xl mb-2">Проверьте почту</h2>
+            <p class="text-gray-400 text-xs">Мы отправили код подтверждения на <span id="display-email" class="text-white font-mono"></span></p>
+        </div>
+
+        <form id="verify-form" class="space-y-4">
+            <input type="text" id="verify-code" required maxlength="6"
+                   class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-center text-2xl font-mono tracking-[0.5em] text-white placeholder-gray-700 focus:border-omiRed focus:ring-0 focus:outline-none transition-colors"
+                   placeholder="000000">
+
+            <button type="submit" class="w-full bg-omiRed text-white font-display font-bold py-3.5 rounded-xl hover:bg-red-600 transition-all shadow-[0_0_20px_rgba(255,59,48,0.3)] text-sm uppercase tracking-wide">
+                Подтвердить
             </button>
         </form>
     </div>
@@ -84,57 +87,62 @@
             <a href="/login" class="text-white font-bold hover:text-omiRed transition-colors ml-1">Войти</a>
         </p>
     </div>
-
 </div>
 
 <script>
+    let registeredEmail = "";
+
+    // 1. Обработка регистрации
     document.getElementById('register-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        // 1. Собираем данные
         const username = document.getElementById('username').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const confirm = document.getElementById('confirm-password').value;
 
-        // 2. Простая проверка на фронтенде
-        if (password !== confirm) {
-            alert('Ошибка: Пароли не совпадают!');
-            return;
-        }
-
-        // 3. Готовим данные для отправки (как ждет Python)
-        const data = {
-            username: username,
-            email: email,
-            password: password
-        };
+        if (password !== confirm) { alert('Пароли не совпадают!'); return; }
 
         try {
-            // 4. Стучимся на сервер
             const response = await fetch('/api/v1/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ username, email, password })
             });
 
-            // 5. Обрабатываем ответ
             if (response.ok) {
-                // УСПЕХ: Перекидываем на вход
+                // УСПЕХ: Переключаем экраны
+                registeredEmail = email;
+                document.getElementById('display-email').textContent = email;
+                document.getElementById('register-step').classList.add('hidden');
+                document.getElementById('verify-step').classList.remove('hidden');
+            } else {
+                const errorData = await response.json();
+                alert('Ошибка: ' + (errorData.detail || 'Неизвестная ошибка'));
+            }
+        } catch (error) { console.error(error); alert('Ошибка соединения'); }
+    });
+
+    // 2. Обработка кода
+    document.getElementById('verify-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('verify-code').value;
+
+        try {
+            const response = await fetch('/api/v1/auth/verify-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: registeredEmail, code: code })
+            });
+
+            if (response.ok) {
+                // УСПЕХ: Код верный
+                alert('Аккаунт активирован! Сейчас перенаправим на вход.');
                 window.location.href = '/login';
             } else {
-                // ОШИБКА: Сервер вернул 400 или 422
                 const errorData = await response.json();
-                // Если ошибка сложная (список), берем первую, иначе detail
-                const msg = Array.isArray(errorData.detail)
-                            ? errorData.detail[0].msg
-                            : errorData.detail;
-                alert('Ошибка: ' + msg);
+                alert('Ошибка: ' + (errorData.detail || 'Неверный код'));
             }
-        } catch (error) {
-            console.error(error);
-            alert('Ошибка соединения с сервером. Бэкенд запущен?');
-        }
+        } catch (error) { console.error(error); alert('Ошибка соединения'); }
     });
 </script>
 </body>

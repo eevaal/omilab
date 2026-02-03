@@ -1,3 +1,5 @@
+# api/v1/auth.py
+import random
 from core.security import (
     create_access_token,
     get_password_hash,
@@ -5,40 +7,83 @@ from core.security import (
     decode_access_token,
 )
 from database.dependencies import db_dependency
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from models.users import User
 from schemas.users import UserCreate, UserLogin, UserResponse
 from sqlalchemy import select
+from pydantic import BaseModel
+
+# Импортируем нашу функцию отправки
+from utils.email import send_confirmation_code
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/register", response_model=UserResponse)
-async def register(user_data: UserCreate, db: db_dependency):
-    q_username = select(User).where(User.username == user_data.username)
-    result_username = await db.execute(q_username)
-    existing_user = result_username.scalars().first()
+# Модель для приема кода с фронтенда
+class VerifyEmailRequest(BaseModel):
+    email: str
+    code: str
 
-    if existing_user:
+
+@router.post("/register")
+async def register(user_data: UserCreate, db: db_dependency):
+    # Проверки на существование (без изменений)
+    q_username = select(User).where(User.username == user_data.username)
+    if (await db.execute(q_username)).scalars().first():
         raise HTTPException(status_code=400, detail="Пользователь с данным именем уже существует")
 
     q_email = select(User).where(User.email == user_data.email)
-    result_email = await db.execute(q_email)
-    existing_email = result_email.scalars().first()
-
-    if existing_email:
+    if (await db.execute(q_email)).scalars().first():
         raise HTTPException(status_code=400, detail="Пользователь с данным email уже существует")
 
     hashed_pwd = get_password_hash(user_data.password)
 
-    new_user = User(username=user_data.username, email=user_data.email, hashed_password=hashed_pwd)
+    # Генерируем код (6 цифр)
+    activation_code = str(random.randint(100000, 999999))
+
+    new_user = User(
+        username=user_data.username,
+        email=user_data.email,
+        hashed_password=hashed_pwd,
+        email_confirmed=False,  # <-- ДОСТУП ЗАКРЫТ
+        confirmation_code=activation_code  # <-- Сохраняем код
+    )
 
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
 
-    return new_user
+    # Отправляем письмо
+    try:
+        await send_confirmation_code(user_data.email, activation_code)
+    except Exception as e:
+        print(f"Ошибка отправки почты: {e}")
+        # Не ломаем регистрацию, если почта отвалилась, но юзер узнает об этом на этапе ввода кода
+
+    return {"message": "User created", "email": user_data.email}
+
+
+# НОВЫЙ ЭНДПОИНТ: Проверка кода
+@router.post("/verify-email")
+async def verify_email_code(data: VerifyEmailRequest, db: db_dependency):
+    query = select(User).where(User.email == data.email)
+    result = await db.execute(query)
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    if user.email_confirmed:
+        return {"message": "Почта уже подтверждена"}
+
+    if user.confirmation_code == data.code:
+        user.email_confirmed = True  # <-- ОТКРЫВАЕМ ДОСТУП
+        user.confirmation_code = None
+        await db.commit()
+        return {"message": "Успех"}
+    else:
+        raise HTTPException(status_code=400, detail="Неверный код")
 
 
 @router.post("/login")
@@ -50,53 +95,43 @@ async def login(user_data: UserLogin, db: db_dependency):
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Неверные данные")
 
+    # --- НОВАЯ ЗАЩИТА ---
+    if not user.email_confirmed:
+        raise HTTPException(
+            status_code=403,
+            detail="Почта не подтверждена. Введите код, отправленный на email."
+        )
+    # --------------------
+
     access_token = create_access_token(data={"sub": user.username})
-
     response = JSONResponse(content={"status": "ok", "username": user.username})
-
-    response.set_cookie(
-        key="access_token",
-        value=f"Bearer {access_token}",
-        httponly=True,
-        path="/",
-    )
-
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/")
     return response
 
 
+# Logout и get_current_user оставляем как было...
 @router.post("/logout")
 async def logout():
     response = JSONResponse(content={"message": "Вы успешно вышли"})
-
     response.delete_cookie(key="access_token", path="/", httponly=True)
-
     return response
 
 
 async def get_current_user(request: Request, db: db_dependency):
     token = request.cookies.get("access_token")
-
     if not token:
         raise HTTPException(status_code=401, detail="Не авторизован")
-
     try:
         scheme, _, param = token.partition(" ")
         token_str = param if param else scheme
-
         payload = decode_access_token(token_str)
         username: str = payload.get("sub")
-
-        if username is None:
-            raise HTTPException(status_code=401, detail="Неверный токен")
-
     except Exception:
         raise HTTPException(status_code=401, detail="Ошибка авторизации")
 
     query = select(User).where(User.username == username)
     result = await db.execute(query)
     user = result.scalars().first()
-
     if user is None:
         raise HTTPException(status_code=401, detail="Пользователь не найден")
-
     return user
