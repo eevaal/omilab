@@ -12,7 +12,7 @@ from database.database import Base, engine
 from database.dependencies import db_dependency
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from models.lectures import Lecture, LectureRating
@@ -90,17 +90,21 @@ async def home_page(request: Request, db: db_dependency):
             status_code=403
         )
 
-    # Обычная логика
-    query = select(Lecture).order_by(Lecture.created_at.desc()).limit(6)
+    query = (
+        select(Lecture, User)
+        .join(User, Lecture.author == User.username)
+        .order_by(Lecture.created_at.desc())
+        .limit(6)
+    )
     result = await db.execute(query)
-    latest_lectures = result.scalars().all()
+    lectures_data = result.all()
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "user": current_user,
-            "latest_lectures": latest_lectures,
+            "lectures": lectures_data,
         },
     )
 
@@ -119,6 +123,19 @@ async def register_page(request: Request):
 async def lecture_page(request: Request, id: int, db: db_dependency):
     current_user = await get_current_user_from_cookie(request, db)
 
+    # 1. Сначала проверка на БАН (чтобы забаненный видел блок, а не логин)
+    if current_user == "BANNED":
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "is_banned": True},
+            status_code=403
+        )
+
+    # 2. НОВАЯ ЛОГИКА: Если пользователь не авторизован — редирект на вход
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    # --- Дальше стандартная логика получения лекции ---
     lecture = await crud.get_lecture_by_id(db, lecture_id=id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
@@ -130,6 +147,7 @@ async def lecture_page(request: Request, id: int, db: db_dependency):
     author_user = result.scalars().first()
 
     user_rating = 0
+    # Проверка if current_user уже не нужна (мы проверили выше), но оставим для надежности типов
     if current_user:
         query_rating = select(LectureRating).where(
             LectureRating.user_id == current_user.id, LectureRating.lecture_id == id
@@ -142,7 +160,6 @@ async def lecture_page(request: Request, id: int, db: db_dependency):
     query_avg = select(func.avg(LectureRating.score)).where(LectureRating.lecture_id == id)
     res_avg = await db.execute(query_avg)
     average_rating = res_avg.scalar() or 0.0
-
     average_rating = round(average_rating, 1)
 
     is_bookmarked = False
@@ -173,36 +190,52 @@ async def login_page(request: Request):
 async def profile_page(request: Request, username: str, db: db_dependency):
     current_user = await get_current_user_from_cookie(request, db)
 
-    # Если текущий залогиненный юзер забанен — не пускаем его никуда
+    # 1. Проверка на БАН
     if current_user == "BANNED":
         return templates.TemplateResponse(
-            "index.html",  # Или отдельный error.html
+            "index.html",
             {"request": request, "is_banned": True},
             status_code=403
         )
 
-    # Логика поиска владельца профиля
-    query = select(User).where(User.username == username)
-    result = await db.execute(query)
-    profile_owner = result.scalars().first()
+    # 2. Ищем владельца профиля
+    query_user = select(User).where(User.username == username)
+    result_user = await db.execute(query_user)
+    profile_owner = result_user.scalars().first()
 
     if not profile_owner:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
-    # Собираем статистику
-    lectures_query = select(Lecture).where(Lecture.creator_id == profile_owner.id)
+    # 3. Считаем статистику (ИСПРАВЛЕНО: используем author вместо creator_id)
+    # Считаем общее количество
+    lectures_query = select(Lecture).where(Lecture.author == profile_owner.username).order_by(Lecture.created_at.desc())
     lectures_result = await db.execute(lectures_query)
     user_lectures = lectures_result.scalars().all()
     total_lectures = len(user_lectures)
+
+    # Считаем новые за 4 дня
+    four_days_ago = datetime.utcnow() - timedelta(days=4)
+    query_new = select(func.count(Lecture.id)).where(
+        Lecture.author == profile_owner.username, Lecture.created_at >= four_days_ago
+    )
+    new_result = await db.execute(query_new)
+    new_lectures_count = new_result.scalar()
+
+    # 4. Загружаем закладки (только для владельца)
+    bookmarked_lectures = []
+    if current_user and current_user != "BANNED" and current_user.id == profile_owner.id:
+        bookmarked_lectures = current_user.bookmarks
 
     return templates.TemplateResponse(
         "profile.html",
         {
             "request": request,
-            "user": current_user,  # Теперь здесь либо объект User, либо None
+            "user": current_user,
             "profile_user": profile_owner,
             "total_lectures": total_lectures,
+            "new_lectures_count": new_lectures_count,
             "lectures": user_lectures,
+            "bookmarked_lectures": bookmarked_lectures, # Важно для второй вкладки
         },
     )
 

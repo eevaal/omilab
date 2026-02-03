@@ -39,14 +39,16 @@
             -webkit-text-stroke: 1px #ff3b30;
             text-shadow: 0 0 15px rgba(255, 59, 48, 0.3);
         }
+        .glass-card {
+            background: rgba(15, 15, 16, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
-        /* Скрываем результаты поиска, если они пустые */
-        #search-results:empty {
-            display: none;
-        }
+        #search-results:empty { display: none; }
     </style>
 </head>
 <body class="bg-darkbg bg-noise-bg bg-cover bg-center bg-no-repeat bg-fixed text-white min-h-screen flex flex-col font-sans selection:bg-omiRed selection:text-white relative overflow-x-hidden">
@@ -68,7 +70,7 @@
         <div class="flex items-center gap-8">
             <a href="/" class="hover:text-white transition-colors hidden md:block">Главная</a>
 
-            {% if user %}
+            {% if user and not is_banned %}
             <div class="relative group z-50">
                 <button id="user-menu-btn"
                         class="relative block w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-white/20 hover:border-omiRed transition-colors focus:outline-none active:scale-95">
@@ -88,49 +90,49 @@
                     <div class="py-2">
                         <a href="/profile/{{ user.username }}"
                            class="flex items-center gap-3 px-5 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors group/item">
-                            <svg class="w-4 h-4 text-gray-500 group-hover/item:text-omiRed transition-colors"
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
                             Профиль
-                        </a>
-
-                        <a href="#"
-                           class="flex items-center gap-3 px-5 py-3 text-sm text-gray-600 cursor-not-allowed hover:bg-white/5 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                            Настройки
                         </a>
                     </div>
 
                     <div class="border-t border-white/5 py-2">
                         <button onclick="logout()"
                                 class="w-full text-left flex items-center gap-3 px-5 py-3 text-sm text-omiRed hover:bg-omiRed/10 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
                             Выйти
                         </button>
                     </div>
                 </div>
             </div>
-            {% else %}
+            {% elif not user %}
             <a href="/login"
                class="text-white hover:text-omiRed transition-colors font-bold text-xs uppercase tracking-widest">
                 Войти
             </a>
             {% endif %}
         </div>
-
     </nav>
 
     <main class="relative z-10 flex-grow flex flex-col items-center justify-center w-full max-w-5xl mx-auto px-4 mt-8 md:mt-0">
 
+        {% if is_banned %}
+        <div class="glass-card rounded-[2.5rem] p-12 text-center border-omiRed/30 shadow-[0_0_80px_rgba(255,59,48,0.15)] animate-in fade-in zoom-in duration-500">
+            <h1 class="font-display text-4xl md:text-5xl font-black mb-6 text-omiRed drop-shadow-lg">
+                ДОСТУП ОГРАНИЧЕН
+            </h1>
+            <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto leading-relaxed">
+                Ваш аккаунт на <span class="text-white font-bold">OmiLab</span> был заблокирован администрацией за нарушение правил сообщества.
+            </p>
+            <div class="flex flex-col gap-4 items-center">
+                <div class="inline-flex items-center gap-2 px-6 py-2 rounded-full border border-omiRed/50 bg-omiRed/10 text-omiRed font-display font-bold text-[10px] uppercase tracking-widest">
+                    <span class="w-2 h-2 rounded-full bg-omiRed animate-pulse"></span>
+                    Статус: BANNED
+                </div>
+                <button onclick="logout()" class="text-xs text-gray-500 hover:text-white transition-colors underline decoration-white/20 hover:decoration-white">
+                    Выйти из аккаунта
+                </button>
+            </div>
+        </div>
+
+        {% else %}
         <h1 class="font-display text-4xl md:text-7xl font-bold text-center leading-[1.1] tracking-tight mb-12">
             твой комфорт<br>
             начинается <span class="hollow-text transition-all duration-300 hover:text-omiRed/10 cursor-default">ЗДЕСЬ</span>
@@ -154,59 +156,45 @@
             </div>
 
             <div id="search-results" class="absolute top-full left-0 right-0 mt-4 bg-[#0f0f10]/95 backdrop-blur-2xl border border-[#2a2a2a] rounded-3xl overflow-hidden z-50 shadow-2xl max-h-80 overflow-y-auto hidden">
-                </div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-            {% for lecture, author in lectures %}
+            {% if lectures %}
+                {% for lecture, author in lectures %}
+                <a href="/lecture/{{ lecture.id }}"
+                   class="group bg-[#0f0f10]/50 backdrop-blur-md border border-[#1c1c1e]/50 rounded-[2rem] p-4 hover:border-gray-600 transition-all duration-300 hover:-translate-y-1 cursor-pointer block">
 
-            <a href="/lecture/{{ lecture.id }}"
-               class="group bg-[#0f0f10]/50 backdrop-blur-md border border-[#1c1c1e]/50 rounded-[2rem] p-4 hover:border-gray-600 transition-all duration-300 hover:-translate-y-1 cursor-pointer block">
-
-                <div class="h-40 rounded-[1.5rem] bg-gradient-to-tr from-gray-800 to-neutral-700 mb-5 overflow-hidden relative flex items-center justify-center border border-white/5">
-                    <div class="opacity-50 text-6xl transition-transform duration-500 group-hover:scale-110">
-                        {% if lecture.subject == 'Информатика' %} 💻
-                        {% elif lecture.subject == 'Социология' %} 📐
-                        {% else %} 💎 {% endif %}
-                    </div>
-                </div>
-
-                <div class="px-2 pb-2">
-                    <h3 class="font-display font-bold text-xl mb-1 text-white group-hover:text-omiRed transition-colors">
-                        {{ lecture.title }}
-                    </h3>
-                    <div class="flex items-center gap-2 mt-2 relative z-30">
-
-                        <img src="{{ author.avatar_url if author.avatar_url else 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + author.username }}"
-                             class="w-5 h-5 rounded-full border border-white/10 object-cover">
-
-                        <p class="text-[10px] text-gray-400 font-mono uppercase tracking-wider">
-                            {{ lecture.subject }} •
-                            <span onclick="event.preventDefault(); event.stopPropagation(); window.location.href='/profile/{{ author.username }}';"
-                                  class="text-white hover:text-omiRed transition-colors cursor-pointer font-bold">
-                        {{ author.username }}
-                    </span>
-                        </p>
-
-                        {% if author.is_verified %}
-                        <div class="w-3.5 h-3.5 bg-omiRed rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(13,110,253,0.3)]">
-                            <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"></path>
-                            </svg>
+                    <div class="h-40 rounded-[1.5rem] bg-gradient-to-tr from-gray-800 to-neutral-700 mb-5 overflow-hidden relative flex items-center justify-center border border-white/5">
+                        <div class="opacity-50 text-6xl transition-transform duration-500 group-hover:scale-110">
+                            {% if lecture.subject == 'Информатика' %} 💻
+                            {% elif lecture.subject == 'Социология' %} 📐
+                            {% else %} 💎 {% endif %}
                         </div>
-                        {% endif %}
                     </div>
-                </div>
-            </a>
-            {% endfor %}
 
-            {% if not lectures %}
-            <div class="col-span-3 text-center text-gray-500 py-10 font-mono">
-                База знаний пуста. Стань первым.
-            </div>
+                    <div class="px-2 pb-2">
+                        <h3 class="font-display font-bold text-xl mb-1 text-white group-hover:text-omiRed transition-colors">
+                            {{ lecture.title }}
+                        </h3>
+                        <div class="flex items-center gap-2 mt-2 relative z-30">
+                            <img src="{{ author.avatar_url if author.avatar_url else 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + author.username }}"
+                                 class="w-5 h-5 rounded-full border border-white/10 object-cover">
+                            <p class="text-[10px] text-gray-400 font-mono uppercase tracking-wider">
+                                {{ lecture.subject }} • {{ author.username }}
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-3 text-center text-gray-500 py-10 font-mono">
+                    Пока нет популярных лекций. Воспользуйтесь поиском.
+                </div>
             {% endif %}
         </div>
-    </main>
+
+        {% endif %} </main>
 
     <script>
         // --- Логика меню ---
@@ -214,48 +202,26 @@
         const dropdown = document.getElementById('user-dropdown');
 
         if (menuBtn && dropdown) {
-            // Клик по аватарке
             menuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isClosed = dropdown.classList.contains('opacity-0');
-
-                if (isClosed) {
-                    // Открываем
-                    dropdown.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                    dropdown.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
-                } else {
-                    // Закрываем
-                    closeMenu();
-                }
+                dropdown.classList.toggle('opacity-0');
+                dropdown.classList.toggle('pointer-events-none');
+                dropdown.classList.toggle('scale-95');
             });
-
-            // Закрыть при клике в любое другое место
             document.addEventListener('click', (e) => {
                 if (!dropdown.contains(e.target) && e.target !== menuBtn) {
-                    closeMenu();
+                    dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
                 }
             });
-
-            function closeMenu() {
-                dropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
-                dropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-            }
         }
 
-        // --- Логика ВЫХОДА (Logout) ---
         async function logout() {
-            try {
-                // Просим сервер "убить" куку
-                await fetch('/api/v1/auth/logout', { method: 'POST' });
-            } catch (error) {
-                console.error("Ошибка при выходе:", error);
-            } finally {
-                // В любом случае перезагружаем страницу и идем на главную
-                window.location.href = "/";
-            }
+            try { await fetch('/api/v1/auth/logout', { method: 'POST' }); }
+            catch (e) {}
+            finally { window.location.href = "/"; }
         }
     </script>
-
     <footer class="py-10"></footer>
-
     <script src="/static/js/search.js"></script>
+</body>
+</html>
