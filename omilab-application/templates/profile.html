@@ -299,6 +299,17 @@
                 </div>
                 {% endif %}
             </div>
+            <div class="lecture-card">
+                <div class="lecture-date" style="
+                    font-size: 0.8rem;
+                    color: #888;
+                    margin-top: 5px;
+                    text-align: right;">
+
+                    {{ lecture.created_at.strftime('%d.%m.%Y') }}
+
+                </div>
+            </div>
         </div>
     </a> {% endfor %} </div>
 
