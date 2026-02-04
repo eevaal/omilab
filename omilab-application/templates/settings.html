@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки — OmiLab</title>
+
+    <link rel="icon" type="image/png" href="/static/images/OmiClearDark.png?v=2">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Unbounded:wght@400;600;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#050505',
+                        omiRed: '#ff3b30',
+                        omiDarkInput: '#0f0f10'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Unbounded', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'noise-bg': "url('/static/images/bg_omi_noise.png')",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Эффект стекла */
+        .glass-card {
+            background: rgba(15, 15, 16, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white min-h-screen font-sans selection:bg-omiRed relative overflow-x-hidden">
+
+    <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-omiRed/10 blur-[150px] rounded-full pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none"></div>
+
+    <nav class="relative z-50 w-full max-w-7xl mx-auto px-6 py-8 flex justify-between items-center text-[10px] md:text-xs uppercase tracking-[0.2em] font-medium text-gray-400">
+        <div class="hidden md:flex gap-8">
+            <a href="#" class="hover:text-white transition-colors">Поддержать</a>
+            <a href="#" class="hover:text-white transition-colors">Поиск</a>
+        </div>
+
+        <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <a href="/" class="w-12 h-12 bg-[#1a1a1a]/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-2xl hover:scale-105 transition-transform duration-300">
+                <img src="/static/images/OmiClearDark.png" alt="OmiLab Logo" class="w-full h-full object-cover">
+            </a>
+        </div>
+
+        <div class="flex items-center gap-8">
+            <a href="/" class="hover:text-white transition-colors hidden md:block">Главная</a>
+
+            {% if user %}
+            <a href="/profile/{{ user.username }}" class="relative block w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-white/20 hover:border-omiRed transition-colors">
+                <img src="{{ user.avatar_url if user.avatar_url else 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.username }}"
+                     class="w-full h-full object-cover">
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="relative z-10 w-full max-w-3xl mx-auto px-4 mt-8 md:mt-12 mb-20">
+
+        <div class="mb-8 text-center md:text-left">
+            <h1 class="font-display font-black text-3xl md:text-5xl tracking-tighter mb-2">Настройки</h1>
+            <p class="text-gray-500 text-sm">Управление профилем и безопасностью</p>
+        </div>
+
+        <form id="settings-form" class="glass-card rounded-[2rem] p-8 md:p-10 space-y-12">
+
+            <div class="space-y-6">
+                <h2 class="font-display font-bold text-lg uppercase tracking-wider text-omiRed flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    Публичный профиль
+                </h2>
+
+                <div class="flex items-center gap-6 pb-6 border-b border-white/5">
+                    <div class="relative group">
+                        <div class="w-20 h-20 rounded-2xl overflow-hidden border border-white/10">
+                            <img id="avatar-preview"
+                                 src="{{ user.avatar_url if user.avatar_url else 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.username }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="avatar-upload" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Загрузить фото
+                        </label>
+                        <input type="file" id="avatar-upload" class="hidden" accept="image/*">
+                        <p class="text-[10px] text-gray-500 mt-2">JPG, PNG или GIF. Максимум 2MB.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase tracking-widest text-gray-500 font-bold ml-1">Никнейм</label>
+                        <input type="text" value="{{ user.username }}" disabled
+                               class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed focus:outline-none">
+                        <p class="text-[9px] text-gray-600 ml-1">Никнейм нельзя изменить</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase tracking-widest text-gray-500 font-bold ml-1">Email</label>
+                        <input type="email" name="email" value="{{ user.email }}"
+                               class="w-full bg-omiDarkInput border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:ring-1 focus:ring-omiRed outline-none transition-all placeholder-gray-700">
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6 pt-6 border-t border-white/5">
+                <h2 class="font-display font-bold text-lg uppercase tracking-wider text-omiRed flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    Пароль
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase tracking-widest text-gray-500 font-bold ml-1">Новый пароль</label>
+                        <input type="password" name="password" placeholder="••••••••"
+                               class="w-full bg-omiDarkInput border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:ring-1 focus:ring-omiRed outline-none transition-all placeholder-gray-600">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase tracking-widest text-gray-500 font-bold ml-1">Подтверждение</label>
+                        <input type="password" name="password_confirm" placeholder="••••••••"
+                               class="w-full bg-omiDarkInput border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:ring-1 focus:ring-omiRed outline-none transition-all placeholder-gray-600">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 pt-6 border-t border-white/5">
+                <a href="/profile/{{ user.username }}" class="px-6 py-3 rounded-xl border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-colors text-gray-400">
+                    Отмена
+                </a>
+                <button type="submit" class="px-8 py-3 rounded-xl bg-omiRed text-white text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-all shadow-[0_0_20px_rgba(255,59,48,0.3)] hover:shadow-[0_0_30px_rgba(255,59,48,0.5)]">
+                    Сохранить
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-12 text-center">
+            <button onclick="alert('Функция в разработке')" class="text-xs text-red-500/50 hover:text-red-500 uppercase tracking-widest transition-colors font-bold">
+                Удалить аккаунт
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="py-10"></footer>
+
+    <script>
+        // 1. Логика загрузки аватара (оставляем как было)
+        const avatarInput = document.getElementById('avatar-upload');
+        if (avatarInput) {
+            avatarInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    document.body.style.cursor = 'wait';
+                    const response = await fetch('/api/v1/users/me/avatar', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Моментально обновляем картинку без перезагрузки
+                        document.getElementById('avatar-preview').src = data.avatar_url;
+                    } else {
+                        alert('Ошибка загрузки фото');
+                    }
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    document.body.style.cursor = 'default';
+                }
+            });
+        }
+
+        // 2. Логика кнопки "СОХРАНИТЬ" (Обновление данных)
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            const formData = new FormData(e.target);
+
+            // Собираем данные в объект
+            const data = {};
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const passwordConfirm = formData.get('password_confirm');
+
+            // Добавляем в запрос только если поле не пустое
+            if (email) data.email = email;
+            if (password) {
+                data.password = password;
+                data.password_confirm = passwordConfirm;
+            }
+
+            // Если ничего не меняли — не отправляем запрос
+            if (Object.keys(data).length === 0) return;
+
+            try {
+                // Визуальный эффект загрузки
+                btn.innerText = "СОХРАНЕНИЕ...";
+                btn.disabled = true;
+                btn.classList.add('opacity-70');
+
+                const response = await fetch('/api/v1/users/me', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Успех
+                    btn.innerText = "СОХРАНЕНО!";
+                    btn.classList.remove('bg-omiRed');
+                    btn.classList.add('bg-green-500'); // Зеленая кнопка
+
+                    // Очищаем поля паролей (безопасность)
+                    e.target.querySelector('input[name="password"]').value = "";
+                    e.target.querySelector('input[name="password_confirm"]').value = "";
+                } else {
+                    // Ошибка (например, пароли не совпали)
+                    alert('Ошибка: ' + (result.detail || 'Что-то пошло не так'));
+                    btn.innerText = "ОШИБКА";
+                }
+
+            } catch (error) {
+                console.error('Ошибка сети:', error);
+                alert('Ошибка сети');
+            } finally {
+                // Возвращаем кнопку в исходное состояние через 2 секунды
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.add('bg-omiRed');
+                    btn.classList.remove('bg-green-500', 'opacity-70');
+                    btn.disabled = false;
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

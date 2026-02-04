@@ -1,12 +1,13 @@
 import asyncio
 import uuid
 
-from core.security import get_current_user
+from core.security import get_current_user, get_password_hash
 from database.database import get_db
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from models.users import User
+from schemas.users import UserUpdate
 from services.storage import storage_service
-from sqlalchemy import update
+from sqlalchemy import update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -40,6 +41,34 @@ async def upload_avatar(
     await db.commit()
 
     return {"status": "ok", "avatar_url": avatar_url}
+
+@router.patch("/me")  
+async def update_user_me(
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    
+    if user_update.email and user_update.email != current_user.email:
+        existing_user = await db.execute(select(User).where(User.email == user_update.email))
+        if existing_user.scalar():
+            raise HTTPException(status_code=400, detail="Этот Email уже занят")
+        current_user.email = user_update.email
+
+    
+    if user_update.password:
+        
+        current_user.hashed_password = get_password_hash(user_update.password)
+
+    
+    try:
+        await db.commit()
+        await db.refresh(current_user)
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Ошибка при сохранении")
+
+    return {"status": "ok", "message": "Профиль обновлен"}
 
 
 

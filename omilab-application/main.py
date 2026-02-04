@@ -239,6 +239,13 @@ async def profile_page(request: Request, username: str, db: db_dependency):
         },
     )
 
+@app.get("/settings") # или просто /settings
+async def settings_page(request: Request, db: db_dependency):
+    user = await get_current_user_from_cookie(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse("settings.html", {"request": request, "user": user})
+
 
 async def get_current_user_from_cookie(request: Request, db: AsyncSession):
     token = request.cookies.get("access_token")
