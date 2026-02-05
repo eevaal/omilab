@@ -2,6 +2,8 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 
+from sqlalchemy.orm import selectinload
+
 from api.v1.auth import router as auth_router
 from api.v1.lectures import decrypt_text
 from api.v1.lectures import router as lectures_router
@@ -199,7 +201,14 @@ async def profile_page(request: Request, username: str, db: db_dependency):
         )
 
     # 2. Ищем владельца профиля
-    query_user = select(User).where(User.username == username)
+    query_user = (
+        select(User)
+        .options(
+            selectinload(User.followers),
+            selectinload(User.following)
+        )
+        .where(User.username == username)
+    )
     result_user = await db.execute(query_user)
     profile_owner = result_user.scalars().first()
 

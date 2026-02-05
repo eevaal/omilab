@@ -4,10 +4,10 @@ import uuid
 from core.security import get_current_user, get_password_hash
 from database.database import get_db
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from models.users import User
+from models.users import User, subscriptions
 from schemas.users import UserUpdate
 from services.storage import storage_service
-from sqlalchemy import update, select
+from sqlalchemy import update, select, func, insert, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -69,6 +69,70 @@ async def update_user_me(
         raise HTTPException(status_code=500, detail="Ошибка при сохранении")
 
     return {"status": "ok", "message": "Профиль обновлен"}
+
+
+@router.post("/{username}/toggle-follow")
+async def toggle_follow(
+        username: str,
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+):
+    # 1. Ищем ID пользователя, на которого хотим подписаться
+    # Нам не нужен весь объект с лекциями, только ID
+    query = select(User.id).where(User.username == username)
+    result = await db.execute(query)
+    target_user_id = result.scalar_one_or_none()
+
+    if not target_user_id:
+        raise HTTPException(404, detail="Пользователь не найден")
+
+    if target_user_id == current_user.id:
+        raise HTTPException(400, detail="Нельзя подписаться на самого себя")
+
+    # 2. Проверяем наличие связи напрямую в таблице subscriptions
+    # Это "легкий" запрос, который не вызывает MissingGreenlet
+    stmt_check = select(subscriptions).where(
+        and_(
+            subscriptions.c.follower_id == current_user.id,
+            subscriptions.c.followed_id == target_user_id
+        )
+    )
+    result_check = await db.execute(stmt_check)
+    is_following = result_check.first() is not None
+
+    action = ""
+
+    if is_following:
+        # ОТПИСЫВАЕМСЯ (Удаляем запись из таблицы)
+        stmt = delete(subscriptions).where(
+            and_(
+                subscriptions.c.follower_id == current_user.id,
+                subscriptions.c.followed_id == target_user_id
+            )
+        )
+        action = "unfollowed"
+    else:
+        # ПОДПИСЫВАЕМСЯ (Вставляем запись)
+        stmt = insert(subscriptions).values(
+            follower_id=current_user.id,
+            followed_id=target_user_id
+        )
+        action = "followed"
+
+    await db.execute(stmt)
+    await db.commit()
+
+    # 3. Считаем и возвращаем новое количество подписчиков
+    count_query = select(func.count()).select_from(subscriptions).where(
+        subscriptions.c.followed_id == target_user_id
+    )
+    new_followers_count = await db.scalar(count_query)
+
+    return {
+        "status": "ok",
+        "action": action,
+        "new_followers_count": new_followers_count
+    }
 
 
 

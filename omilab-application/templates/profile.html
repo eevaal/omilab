@@ -224,11 +224,11 @@
 
                     <div class="flex gap-8 justify-center md:justify-start">
                         <div>
-                            <p class="font-display font-bold text-lg leading-none">0</p>
+                            <p id="followers-count" class="font-display font-bold text-lg leading-none">{{ profile_user.followers|length }}</p>
                             <p class="text-[8px] text-gray-600 uppercase tracking-widest font-black mt-1">Подписчики</p>
                         </div>
                         <div>
-                            <p class="font-display font-bold text-lg leading-none">0</p>
+                            <p id="following-count" class="font-display font-bold text-lg leading-none">{{ profile_user.following|length }}</p>
                             <p class="text-[8px] text-gray-600 uppercase tracking-widest font-black mt-1">Подписки</p>
                         </div>
                     </div>
@@ -246,8 +246,23 @@
                 </div>
             </div>
 
-            {% if not user or user.id != profile_user.id %}
-            <div class="mt-10 flex justify-center md:justify-end">
+            {% if user and user.id != profile_user.id %}
+            <div class="mt-10 flex flex-col md:flex-row gap-4 justify-center md:justify-end">
+                <button id="follow-btn"
+                        onclick="toggleFollow('{{ profile_user.username }}')"
+                        class="px-8 py-3.5 rounded-2xl font-display font-bold text-[9px] uppercase tracking-widest transition-all border
+                        {% if user in profile_user.followers %}
+                            bg-white text-black border-white hover:bg-gray-200
+                        {% else %}
+                            bg-transparent text-white border-white/20 hover:border-omiRed hover:text-omiRed
+                        {% endif %}">
+                    {% if user in profile_user.followers %}
+                        Вы подписаны
+                    {% else %}
+                        Подписаться
+                    {% endif %}
+                </button>
+
                 <button class="bg-white/5 hover:bg-white/10 border border-white/5 px-8 py-3.5 rounded-2xl font-display font-bold text-[9px] uppercase tracking-widest transition-all">
                     Написать сообщение
                 </button>
@@ -361,6 +376,53 @@
             window.location.href = "/";
         }
     }
+
+    async function toggleFollow(username) {
+        const btn = document.getElementById('follow-btn');
+        const countLabel = document.getElementById('followers-count');
+
+        // Блокируем кнопку
+        btn.disabled = true;
+        const originalText = btn.innerText;
+        btn.innerText = "...";
+
+        try {
+            const response = await fetch(`/api/v1/users/${username}/toggle-follow`, {
+                method: 'POST'
+            });
+
+            if (response.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.action === "followed") {
+                    // Стало: Подписан
+                    btn.innerText = "Вы подписаны";
+                    btn.className = "px-8 py-3.5 rounded-2xl font-display font-bold text-[9px] uppercase tracking-widest transition-all border bg-white text-black border-white hover:bg-gray-200";
+                } else {
+                    // Стало: Не подписан
+                    btn.innerText = "Подписаться";
+                    btn.className = "px-8 py-3.5 rounded-2xl font-display font-bold text-[9px] uppercase tracking-widest transition-all border bg-transparent text-white border-white/20 hover:border-omiRed hover:text-omiRed";
+                }
+
+                // Обновляем цифру
+                if (countLabel) {
+                    countLabel.innerText = data.new_followers_count;
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            btn.innerText = originalText;
+            alert('Ошибка связи');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
 </script>
 
 <footer class="py-20"></footer>

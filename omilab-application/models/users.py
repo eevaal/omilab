@@ -38,6 +38,7 @@ class User(Base):
         primaryjoin=(id == subscriptions.c.follower_id),
         secondaryjoin=(id == subscriptions.c.followed_id),
         back_populates="followers",
+        lazy="selectin"
     )
 
     followers: Mapped[list["User"]] = relationship(
@@ -45,6 +46,7 @@ class User(Base):
         primaryjoin=(id == subscriptions.c.followed_id),
         secondaryjoin=(id == subscriptions.c.follower_id),
         back_populates="following",
+        lazy="selectin"
     )
 
     bookmarks = relationship(
