@@ -1,11 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-
-from database.dependencies import db_dependency
 from api.v1.auth import get_current_user
-from models.users import User
+from database.dependencies import db_dependency
+from fastapi import APIRouter, Depends, HTTPException, status
 from models.lectures import Lecture
+from models.users import User
 
 router = APIRouter()
 

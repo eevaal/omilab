@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from database.database import Base
+from models.bookmarks import bookmarks_table
 from sqlalchemy import Column, ForeignKey, Table, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from models.bookmarks import bookmarks_table
 
 subscriptions = Table(
     "subscriptions",
@@ -38,7 +37,7 @@ class User(Base):
         primaryjoin=(id == subscriptions.c.follower_id),
         secondaryjoin=(id == subscriptions.c.followed_id),
         back_populates="followers",
-        lazy="selectin"
+        lazy="selectin",
     )
 
     followers: Mapped[list["User"]] = relationship(
@@ -46,7 +45,7 @@ class User(Base):
         primaryjoin=(id == subscriptions.c.followed_id),
         secondaryjoin=(id == subscriptions.c.follower_id),
         back_populates="following",
-        lazy="selectin"
+        lazy="selectin",
     )
 
     bookmarks = relationship(

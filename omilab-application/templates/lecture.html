@@ -479,13 +479,13 @@
                     btn.className = "w-full group rounded-xl border border-omiRed bg-omiRed/10 text-omiRed p-4 transition-all duration-300 hover:shadow-glow-red active:scale-[0.98]";
                     icon.classList.replace('fill-none', 'fill-current');
                     text.innerText = "В избранном";
-                    showNotification("Добавлено в закладки", "success");
+                    showNotification("Добавлено в избранное", "success");
                 } else {
                     // Возвращаем "обычный" стиль (Серый)
                     btn.className = "w-full group rounded-xl border border-white/10 bg-white/5 p-4 text-gray-400 transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-lg active:scale-[0.98]";
                     icon.classList.replace('fill-current', 'fill-none');
-                    text.innerText = "В закладки";
-                    showNotification("Удалено из закладок", "success");
+                    text.innerText = "В избранное";
+                    showNotification("Удалено из избранного", "success");
                 }
             }
         } catch (e) {

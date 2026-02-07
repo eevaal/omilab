@@ -42,9 +42,6 @@ if config.config_file_name is not None:
 from database.database import Base
 
 # Потом ВСЕ модели, которые должны попасть в миграцию
-from models.users import User
-from models.lectures import Lecture
-from models.bookmarks import bookmarks_table
 
 # Привязываем метаданные
 target_metadata = Base.metadata

@@ -1,8 +1,9 @@
 # utils/email.py
 import os
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
-from pydantic import EmailStr
+
 from dotenv import load_dotenv
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from pydantic import EmailStr
 
 load_dotenv()
 
@@ -15,8 +16,9 @@ conf = ConnectionConfig(
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
+    VALIDATE_CERTS=True,
 )
+
 
 async def send_confirmation_code(email: EmailStr, code: str):
     html = f"""
@@ -31,10 +33,7 @@ async def send_confirmation_code(email: EmailStr, code: str):
     """
 
     message = MessageSchema(
-        subject="OmiLab: Код подтверждения",
-        recipients=[email],
-        body=html,
-        subtype=MessageType.html
+        subject="OmiLab: Код подтверждения", recipients=[email], body=html, subtype=MessageType.html
     )
 
     fm = FastMail(conf)

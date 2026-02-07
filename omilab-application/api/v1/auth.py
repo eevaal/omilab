@@ -1,38 +1,30 @@
-# api/v1/auth.py
 import random
+
 from core.security import (
     create_access_token,
+    decode_access_token,
     get_password_hash,
     verify_password,
-    decode_access_token,
 )
 from database.dependencies import db_dependency
-from fastapi import APIRouter, HTTPException, Request, Depends, BackgroundTasks # <--- ИМПОРТ BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from fastapi.responses import JSONResponse
 from models.users import User
-from schemas.users import UserCreate, UserLogin, UserResponse
-from sqlalchemy import select
 from pydantic import BaseModel
-
-# Импортируем нашу функцию отправки
+from schemas.users import UserCreate, UserLogin
+from sqlalchemy import select
 from utils.email import send_confirmation_code
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-# Модель для приема кода с фронтенда
 class VerifyEmailRequest(BaseModel):
     email: str
     code: str
 
 
 @router.post("/register")
-async def register(
-    user_data: UserCreate,
-    db: db_dependency,
-    background_tasks: BackgroundTasks # <--- Добавляем в аргументы
-):
-    # Проверки на существование
+async def register(user_data: UserCreate, db: db_dependency, background_tasks: BackgroundTasks):
     q_username = select(User).where(User.username == user_data.username)
     if (await db.execute(q_username)).scalars().first():
         raise HTTPException(status_code=400, detail="Пользователь с данным именем уже существует")
@@ -43,7 +35,6 @@ async def register(
 
     hashed_pwd = get_password_hash(user_data.password)
 
-    # Генерируем код (6 цифр)
     activation_code = str(random.randint(100000, 999999))
 
     new_user = User(
@@ -51,22 +42,17 @@ async def register(
         email=user_data.email,
         hashed_password=hashed_pwd,
         email_confirmed=False,
-        confirmation_code=activation_code
+        confirmation_code=activation_code,
     )
 
     db.add(new_user)
     await db.commit()
-    # await db.refresh(new_user) # Убираем лишний запрос для скорости
 
-    # --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Отправка в фоне ---
-    # Мы просто добавляем задачу в очередь, сервер выполнит её после ответа юзеру
     background_tasks.add_task(send_confirmation_code, user_data.email, activation_code)
-    # ------------------------------------------
 
     return {"message": "User created", "email": user_data.email}
 
 
-# Остальной код без изменений
 @router.post("/verify-email")
 async def verify_email_code(data: VerifyEmailRequest, db: db_dependency):
     query = select(User).where(User.email == data.email)
@@ -99,8 +85,7 @@ async def login(user_data: UserLogin, db: db_dependency):
 
     if not user.email_confirmed:
         raise HTTPException(
-            status_code=403,
-            detail="Почта не подтверждена. Введите код, отправленный на email."
+            status_code=403, detail="Почта не подтверждена. Введите код, отправленный на email."
         )
 
     access_token = create_access_token(data={"sub": user.username})

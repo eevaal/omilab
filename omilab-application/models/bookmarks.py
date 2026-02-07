@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from database.database import Base
-from sqlalchemy import Column, ForeignKey, Table, func, Integer, DateTime
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Table
 
 bookmarks_table = Table(
     "bookmarks",
