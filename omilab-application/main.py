@@ -230,10 +230,18 @@ async def profile_page(request: Request, username: str, db: db_dependency):
     new_result = await db.execute(query_new)
     new_lectures_count = new_result.scalar()
 
-    # 4. Загружаем закладки (только для владельца)
     bookmarked_lectures = []
     if current_user and current_user != "BANNED" and current_user.id == profile_owner.id:
-        bookmarked_lectures = current_user.bookmarks
+        stmt = (
+            select(Lecture, User)  # <-- Достаем И лекцию, И автора
+            .join(bookmarks_table, Lecture.id == bookmarks_table.c.lecture_id)
+            .join(User, Lecture.author == User.username)  # <-- Соединяем с таблицей юзеров
+            .where(bookmarks_table.c.user_id == current_user.id)
+            .order_by(Lecture.created_at.desc())
+        )
+        res_bookmarks = await db.execute(stmt)
+        # Теперь это список пар [(Lecture, User), (Lecture, User), ...]
+        bookmarked_lectures = res_bookmarks.all()
 
     return templates.TemplateResponse(
         "profile.html",
