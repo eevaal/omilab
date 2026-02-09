@@ -56,29 +56,6 @@
 
 <body class="bg-darkbg bg-noise-bg bg-cover bg-center bg-no-repeat bg-fixed text-white min-h-screen flex flex-col font-sans selection:bg-omiRed selection:text-white relative overflow-x-hidden">
 
-    <style>
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-33.33%); } /* Двигаем на треть, так как текст продублирован 3 раза */
-        }
-        .animate-marquee {
-            display: inline-block;
-            white-space: nowrap;
-            animation: marquee 50s linear infinite; /* 50s — очень плавно и медленно */
-        }
-        .banner-container:hover .animate-marquee {
-            animation-play-state: paused;
-        }
-    </style>
-
-    <a href="/subscribe" class="banner-container absolute top-0 left-0 block w-full bg-omiRed/90 backdrop-blur-md border-b border-white/10 overflow-hidden z-[100] relative">
-        <div class="py-2.5 flex shadow-[0_0_20px_rgba(255,59,48,0.4)]">
-            <div class="animate-marquee font-display font-bold text-[10px] md:text-xs uppercase tracking-[0.15em] text-white">
-                {% set msg = "⚠️ Сервер перегружен. Мы работаем на бесплатном оборудовании. Чтобы сайт летал, а PDF можно было скачивать - поддержите проект или в будущем оформите подписку за 50₽/мес. Это поможет нам переехать на нормальный хостинг." %}
-                {{ msg }}{{ msg }}{{ msg }}
-            </div>
-        </div>
-    </a>
 
     <nav class="relative z-50 w-full max-w-7xl mx-auto px-6 py-8 flex justify-between items-center text-[10px] md:text-xs uppercase tracking-[0.2em] font-medium text-gray-400">
 
