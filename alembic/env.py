@@ -42,6 +42,7 @@ if config.config_file_name is not None:
 from models.bookmarks import bookmarks_table
 from models.lectures import Lecture, LectureRating
 from models.users import User, subscriptions
+from models.wall import WallPost
 from database.database import Base
 
 # Потом ВСЕ модели, которые должны попасть в миграцию

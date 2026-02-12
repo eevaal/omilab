@@ -33,6 +33,14 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -286,6 +294,10 @@
                 Сохранённые
                 <span class="ml-2 text-xs bg-white/10 px-2 py-0.5 rounded-full text-gray-400">{{ bookmarked_lectures|length }}</span>
             </button>
+            <button onclick="switchTab('wall')" id="tab-btn-wall"
+                    class="font-display font-bold text-lg transition-colors duration-200 text-gray-500 hover:text-white pb-4 -mb-4.5 border-b-2 border-transparent whitespace-nowrap">
+                Стена
+            </button>
         </div>
         {% else %}
         <div class="flex justify-between items-end mb-8 px-2">
@@ -393,6 +405,34 @@
             {% endfor %}
         </div>
         {% endif %}
+        <div id="content-wall" class="hidden max-w-2xl mx-auto">
+
+            {% if user %}
+            <div class="mb-8 relative group">
+                <div class="absolute inset-0 bg-gradient-to-r from-omiRed to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
+                <div class="relative bg-[#0F0F10] border border-white/10 rounded-2xl p-4">
+                    <div class="flex gap-4">
+                        <img src="{{ user.avatar_url or 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.username }}" class="w-10 h-10 rounded-full border border-white/10">
+                        <div class="w-full">
+                            <textarea id="wall-input" rows="2" placeholder="Напиши что-нибудь на стене..."
+                                class="w-full bg-transparent text-white placeholder-gray-500 outline-none resize-none font-sans text-sm"></textarea>
+
+                            <div class="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
+
+                                <button onclick="postWall()" class="bg-white text-black hover:bg-gray-200 px-6 py-1.5 rounded-lg font-bold text-xs uppercase tracking-widest transition">
+                                    Отправить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div id="wall-feed" class="space-y-4">
+                <div class="text-center py-10 text-gray-500 animate-pulse">Загрузка стены...</div>
+            </div>
+        </div>
 
 </main>
 
@@ -489,35 +529,130 @@
         }
     }
 
-    // --- Логика переключения вкладок ---
-    function switchTab(tabName) {
-        const btnMy = document.getElementById('tab-btn-my');
-        const btnSaved = document.getElementById('tab-btn-saved');
-        const contentMy = document.getElementById('content-my');
-        const contentSaved = document.getElementById('content-saved');
+    // --- НОВАЯ ЛОГИКА ВКЛАДОК ---
+    const tabs = ['my', 'saved', 'wall'];
+    const PROFILE_USER_ID = {{ profile_user.id }}; // ID владельца профиля
 
-        if (!btnMy || !btnSaved) return;
+    function switchTab(activeTab) {
+        tabs.forEach(tab => {
+            const btn = document.getElementById(`tab-btn-${tab}`);
+            const content = document.getElementById(`content-${tab}`);
 
-        if (tabName === 'my') {
-            // Кнопки
-            btnMy.classList.remove('text-gray-500', 'border-transparent');
-            btnMy.classList.add('text-white', 'border-b-2', 'border-omiRed');
-            btnSaved.classList.remove('text-white', 'border-b-2', 'border-omiRed');
-            btnSaved.classList.add('text-gray-500', 'border-transparent');
+            if (!btn || !content) return;
 
-            // Контент
-            contentMy.classList.remove('hidden');
-            contentSaved.classList.add('hidden');
-        } else {
-            // Кнопки
-            btnSaved.classList.remove('text-gray-500', 'border-transparent');
-            btnSaved.classList.add('text-white', 'border-b-2', 'border-omiRed');
-            btnMy.classList.remove('text-white', 'border-b-2', 'border-omiRed');
-            btnMy.classList.add('text-gray-500', 'border-transparent');
+            if (tab === activeTab) {
+                // Активная вкладка
+                btn.classList.remove('text-gray-500', 'border-transparent');
+                btn.classList.add('text-white', 'border-omiRed'); // Для Стены можно сделать другой цвет бордера
+                content.classList.remove('hidden');
 
-            // Контент
-            contentSaved.classList.remove('hidden');
-            contentMy.classList.add('hidden');
+                // Если открыли стену — грузим посты
+                if (tab === 'wall') loadWall();
+            } else {
+                // Неактивная
+                btn.classList.add('text-gray-500', 'border-transparent');
+                btn.classList.remove('text-white', 'border-omiRed');
+                content.classList.add('hidden');
+            }
+        });
+    }
+
+    async function loadWall() {
+        const feed = document.getElementById('wall-feed');
+        try {
+            const res = await fetch(`/api/v1/wall/${PROFILE_USER_ID}`);
+            if (!res.ok) throw new Error('Err');
+            const posts = await res.json();
+
+            feed.innerHTML = '';
+
+            if (posts.length === 0) {
+                feed.innerHTML = '<div class="text-center text-gray-600 text-sm py-4 border border-dashed border-white/5 rounded-xl">На стене пока тишина...</div>';
+                return;
+            }
+
+            posts.forEach(post => {
+                let timeString = post.created_at;
+                if (!timeString.endsWith('Z')) {
+                    timeString += 'Z';
+                }
+
+                // 2. БРАУЗЕР САМ ПЕРЕВОДИТ В МЕСТНОЕ ВРЕМЯ
+                const date = new Date(timeString).toLocaleString('ru-RU', {
+                    day: 'numeric',
+                    month: 'long', // "февраля" вместо "02"
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // 2. Логика Аватарки (Берем из базы или генерируем)
+                const avatarSrc = post.author_avatar_url
+                    ? post.author_avatar_url
+                    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author_username}`;
+
+                // 3. Логика Галочки (SVG код)
+                let verifiedBadge = '';
+                if (post.author_is_verified) {
+                    verifiedBadge = `
+                        <span class="w-3.5 h-3.5 bg-omiRed rounded-full flex items-center justify-center ml-1.5 border border-[#0F0F10]">
+                            <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"></path>
+                            </svg>
+                        </span>
+                    `;
+                }
+
+                // 4. HTML Поста
+                feed.innerHTML += `
+                    <div class="flex gap-4 border-b border-white/5 pb-6 pt-2 animate-fade-in group">
+                         <div class="w-10 h-10 rounded-full bg-gray-800 shrink-0 overflow-hidden border border-white/10 relative">
+                            <img src="${avatarSrc}" class="w-full h-full object-cover">
+                         </div>
+
+                         <div class="w-full">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center">
+                                    <a href="/profile/${post.author_username}" class="font-display font-bold text-white text-sm hover:text-omiRed transition flex items-center">
+                                        ${post.author_username}
+                                        ${verifiedBadge}
+                                    </a>
+                                </div>
+                                <span class="text-[10px] text-gray-600 uppercase tracking-wider font-mono">${date}</span>
+                            </div>
+
+                            <div class="text-gray-300 text-sm mt-2 leading-relaxed whitespace-pre-wrap font-sans bg-[#1A1A1C]/50 p-3 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl border border-white/5 group-hover:border-white/10 transition-colors">
+                                ${post.content}
+                            </div>
+                         </div>
+                    </div>
+                `;
+            });
+        } catch (e) {
+            console.error(e);
+            feed.innerHTML = '<div class="text-red-500 text-sm">Ошибка загрузки стены</div>';
+        }
+    }
+
+    async function postWall() {
+        const input = document.getElementById('wall-input');
+        const content = input.value.trim();
+        if (!content) return;
+
+        try {
+            const res = await fetch('/api/v1/wall/post', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ target_user_id: PROFILE_USER_ID, content: content })
+            });
+
+            if (res.ok) {
+                input.value = ''; // Очистить
+                loadWall(); // Обновить
+            } else {
+                alert('Ошибка отправки');
+            }
+        } catch (e) {
+            console.error(e);
         }
     }
 

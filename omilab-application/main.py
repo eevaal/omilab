@@ -7,6 +7,7 @@ from api.v1.bookmarks import router as bookmarks_router
 from api.v1.lectures import decrypt_text
 from api.v1.lectures import router as lectures_router
 from api.v1.users import router as users_router
+from api.v1.wall import router as wall_router
 from core.security import decode_access_token
 from database import crud
 from database.database import Base, engine
@@ -68,6 +69,7 @@ app.include_router(lectures_router)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 app.include_router(bookmarks_router, prefix="/api/v1/bookmarks")
+app.include_router(wall_router, prefix="/api/v1")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
