@@ -39,6 +39,9 @@ if config.config_file_name is not None:
 # 3. ИМПОРТ МОДЕЛЕЙ (Самая важная часть для autogenerate)
 # ------------------------------------------------------------------------
 # Сначала импортируем Base
+from models.bookmarks import bookmarks_table
+from models.lectures import Lecture, LectureRating
+from models.users import User, subscriptions
 from database.database import Base
 
 # Потом ВСЕ модели, которые должны попасть в миграцию

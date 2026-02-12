@@ -2,7 +2,7 @@ from datetime import datetime
 
 from database.database import Base
 from models.bookmarks import bookmarks_table
-from sqlalchemy import Column, ForeignKey, Table, func
+from sqlalchemy import Column, ForeignKey, Table, func, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 subscriptions = Table(
@@ -22,6 +22,13 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column()
 
     is_verified: Mapped[bool] = mapped_column(index=True, default=False)
+    plus_until: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+    @property
+    def is_plus(self) -> bool:
+        if not self.plus_until:
+            return False
+        return self.plus_until > datetime.utcnow()
 
     email_confirmed: Mapped[bool] = mapped_column(default=False, nullable=True)
     confirmation_code: Mapped[str] = mapped_column(nullable=True)
