@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str | None = None
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: int = 5432
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     # 2. Добавляем поле для полной ссылки (которую мы сунем в Koyeb)
     DATABASE_URL: str | None = None

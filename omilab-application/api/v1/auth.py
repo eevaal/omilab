@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from schemas.users import UserCreate, UserLogin
 from sqlalchemy import select
 from utils.email import send_confirmation_code
+from core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -90,7 +91,7 @@ async def login(user_data: UserLogin, db: db_dependency):
 
     access_token = create_access_token(data={"sub": user.username})
     response = JSONResponse(content={"status": "ok", "username": user.username})
-    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/")
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/", max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES*60, expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES*60)
     return response
 
 
