@@ -24,9 +24,12 @@
         .ql-container { background: rgba(15, 15, 16, 0.6); backdrop-filter: blur(20px); border-color: rgba(255, 255, 255, 0.1) !important; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; color: #d1d5db; font-family: 'Inter', sans-serif; font-size: 1.125rem; }
         .ql-editor.ql-blank::before { color: #ffffff !important; font-style: normal; }
         .ql-snow .ql-stroke { stroke: #9ca3af; } .ql-snow .ql-fill { fill: #9ca3af; } .ql-snow .ql-picker { color: #9ca3af; }
+        .ql-editor { color: #e5e7eb !important;}
+        .ql-editor * {color: inherit !important;}
     </style>
 </head>
 <body class="bg-darkbg bg-noise-bg bg-cover bg-fixed text-white min-h-screen flex items-center justify-center p-6 font-sans">
+
 
     <div class="w-full max-w-4xl bg-[#0f0f10]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative">
         <h1 class="font-display font-bold text-3xl mb-8 text-center">Новая лекция 💎</h1>
@@ -41,11 +44,6 @@
                     <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Предмет</label>
                     <input type="text" id="subject" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors" placeholder="Предмет">
                 </div>
-            </div>
-
-            <div>
-                <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Автор</label>
-                <input type="text" id="author" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-omiRed focus:outline-none transition-colors" placeholder="Ваш никнейм">
             </div>
 
             <div class="flex items-center gap-3 py-4 border-t border-b border-white/5 my-4">
@@ -83,32 +81,28 @@
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
-        // 1. Инициализация редактора
         var quill = new Quill('#editor', {
             theme: 'snow',
             placeholder: 'Пиши здесь свой шедевр...',
             modules: { toolbar: [ [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['blockquote', 'code-block'], ['link', 'clean'] ] }
         });
 
-        // Элементы DOM
         const uploadModeCheckbox = document.getElementById('upload-mode');
         const editorBlock = document.getElementById('editor-block');
         const uploadBlock = document.getElementById('upload-block');
         const fileInput = document.getElementById('pdf-file');
         const fileNameDisplay = document.getElementById('file-name-display');
 
-        // 2. Логика переключения (Скрываем редактор, показываем загрузку)
         uploadModeCheckbox.addEventListener('change', (e) => {
             if (e.target.checked) {
-                editorBlock.classList.add('hidden');   // Спрятать редактор
-                uploadBlock.classList.remove('hidden'); // Показать загрузку
+                editorBlock.classList.add('hidden');
+                uploadBlock.classList.remove('hidden');
             } else {
-                editorBlock.classList.remove('hidden'); // Показать редактор
-                uploadBlock.classList.add('hidden');    // Спрятать загрузку
+                editorBlock.classList.remove('hidden');
+                uploadBlock.classList.add('hidden');
             }
         });
 
-        // 3. Отображение имени файла
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 fileNameDisplay.textContent = "Выбран файл: " + e.target.files[0].name;
@@ -119,18 +113,15 @@
             }
         });
 
-        // 4. Отправка формы
         document.getElementById('create-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const formData = new FormData();
             formData.append('title', document.getElementById('title').value);
             formData.append('subject', document.getElementById('subject').value);
-            formData.append('author', document.getElementById('author').value);
+            // formData.append('author') — УДАЛЕНО, теперь это делает сервер
 
-            // Проверяем режим
             if (uploadModeCheckbox.checked) {
-                // Если режим файла - берем файл
                 const file = fileInput.files[0];
                 if (!file) {
                     alert('Пожалуйста, выберите PDF файл!');
@@ -138,7 +129,6 @@
                 }
                 formData.append('file', file);
             } else {
-                // Если режим текста - берем текст из Quill
                 formData.append('content', quill.root.innerHTML);
             }
 

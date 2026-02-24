@@ -1,11 +1,15 @@
-from pydantic import BaseModel
+
+from pydantic import BaseModel, EmailStr, validator
+
 
 class UserBase(BaseModel):
     username: str
     email: str
 
+
 class UserCreate(UserBase):
     password: str
+
 
 class UserResponse(UserBase):
     id: int
@@ -14,7 +18,21 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+
 class UserLogin(BaseModel):
     username: str
     email: str
     password: str
+
+
+class UserUpdate(BaseModel):
+    email: EmailStr | None = None
+    password: str | None = None
+    password_confirm: str | None = None
+
+    @validator("password_confirm")
+    def passwords_match(cls, v, values, **kwargs):
+        # Если пароль задан, а подтверждение не совпадает — ошибка
+        if "password" in values and values["password"] and v != values["password"]:
+            raise ValueError("Пароли не совпадают")
+        return v

@@ -1,25 +1,28 @@
-from typing import Optional
+from pydantic import BaseModel, Field
 
-from pydantic import BaseModel
 
-# Базовая схема
 class LectureBase(BaseModel):
     title: str
     subject: str
-    author: str          # <--- Мы добавили автора, его не хватало!
-    description: str | None = None  # Сделали необязательным (фронт его не шлет)
+
+    description: str | None = None
     content: str | None = None
 
 
-# Схема для ВХОДЯЩИХ данных (создание)
 class LectureCreate(LectureBase):
-    content: str         # Обязательно ждем HTML
+    content: str
+    author: str
 
-# Схема для ИСХОДЯЩИХ данных (ответ сервера)
+
+class VoteRequest(BaseModel):
+    score: int = Field(..., ge=1, le=5)
+
+
 class LectureResponse(LectureBase):
     id: int
+    author: str
     content: str | None = None
-    filename: Optional[str] = None
+    filename: str | None = None
 
     class Config:
         from_attributes = True

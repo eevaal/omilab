@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: omilab_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: omilab_backend
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    volumes:
+      # ИСПРАВЛЕНО: Монтируем внутрь подпапки, чтобы соответствовать WORKDIR
+      - ./omilab-application:/app/omilab-application
+    env_file:
+      - .env
+    restart: always
+
+volumes:
+  postgres_data:
