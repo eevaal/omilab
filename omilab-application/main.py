@@ -1,6 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 
 from api.v1.auth import router as auth_router
 from api.v1.bookmarks import router as bookmarks_router
@@ -14,7 +15,7 @@ from database.database import Base, engine
 from database.dependencies import db_dependency
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from models.bookmarks import bookmarks_table
@@ -24,6 +25,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from utils.sanitize import sanitize_html
 
 
 @asynccontextmanager
@@ -35,10 +37,6 @@ async def lifespan(app: FastAPI):
 
 
 load_dotenv()
-print("--- ПРОВЕРКА ENV ---")
-print(f"Все ключи: {list(os.environ.keys())[-5:]}")
-print(f"Значение MAINTENANCE_MODE: {os.getenv('MAINTENANCE_MODE')}")
-print("--------------------")
 
 docs_url = None if os.environ.get("RENDER") else "/docs"
 redoc_url = None if os.environ.get("RENDER") else "/redoc"
@@ -129,7 +127,7 @@ async def lecture_page(request: Request, id: int, db: db_dependency):
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
 
-    lecture.content = decrypt_text(lecture.content)
+    lecture.content = sanitize_html(decrypt_text(lecture.content))
 
     query = select(User).where(User.username == lecture.author)
     result = await db.execute(query)
@@ -272,6 +270,19 @@ async def get_current_user_from_cookie(request: Request, db: AsyncSession):
 
 
 MAINTENANCE_MODE = os.getenv("IS_MAINTENANCE", "false").lower() == "true"
+UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+@app.middleware("http")
+async def same_origin_middleware(request: Request, call_next):
+    if request.method in UNSAFE_METHODS:
+        source = request.headers.get("origin") or request.headers.get("referer")
+        if source:
+            source_host = urlparse(source).netloc
+            if source_host and source_host != request.url.netloc:
+                return PlainTextResponse("CSRF check failed", status_code=403)
+
+    return await call_next(request)
 
 
 @app.middleware("http")

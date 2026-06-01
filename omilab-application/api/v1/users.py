@@ -9,6 +9,7 @@ from schemas.users import UserUpdate
 from services.storage import storage_service
 from sqlalchemy import and_, delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.uploads import validate_avatar_upload
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -19,10 +20,8 @@ async def upload_avatar(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(400, detail="Файл должен быть изображением")
+    file_ext, content_type = await validate_avatar_upload(file)
 
-    file_ext = file.filename.split(".")[-1]
     new_filename = f"avatars/{uuid.uuid4()}.{file_ext}"
 
     try:
@@ -30,7 +29,7 @@ async def upload_avatar(
             storage_service.upload_file,
             file_obj=file.file,
             object_name=new_filename,
-            content_type=file.content_type,
+            content_type=content_type,
         )
     except Exception as e:
         print(f"Upload error: {e}")
@@ -63,7 +62,7 @@ async def update_user_me(
         await db.refresh(current_user)
     except Exception:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="Ошибка при сохранении")
+        raise HTTPException(status_code=500, detail="Ошибка при сохранении") from None
 
     return {"status": "ok", "message": "Профиль обновлен"}
 

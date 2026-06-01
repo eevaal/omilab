@@ -1,8 +1,10 @@
-from pydantic import BaseModel
 from datetime import datetime
 
+from pydantic import BaseModel, Field
+
+
 class WallPostCreate(BaseModel):
-    content: str
+    content: str = Field(min_length=1, max_length=2000)
     target_user_id: int
 
 

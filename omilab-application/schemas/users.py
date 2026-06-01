@@ -1,14 +1,13 @@
-
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, Field, validator
 
 
 class UserBase(BaseModel):
-    username: str
-    email: str
+    username: str = Field(min_length=3, max_length=32, pattern=r"^[A-Za-z0-9_]+$")
+    email: EmailStr
 
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(min_length=8, max_length=128)
 
 
 class UserResponse(UserBase):
@@ -20,15 +19,15 @@ class UserResponse(UserBase):
 
 
 class UserLogin(BaseModel):
-    username: str
-    email: str
-    password: str
+    username: str = Field(min_length=3, max_length=32, pattern=r"^[A-Za-z0-9_]+$")
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
 
 
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
-    password: str | None = None
-    password_confirm: str | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=128)
+    password_confirm: str | None = Field(default=None, min_length=8, max_length=128)
 
     @validator("password_confirm")
     def passwords_match(cls, v, values, **kwargs):
