@@ -2,6 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const resultsContainer = document.getElementById('search-results');
 
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     searchInput.addEventListener('input', async (e) => {
         const query = e.target.value.trim();
 
@@ -44,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             div.innerHTML = `
                 <div>
-                    <h4 class="font-display font-bold text-sm text-white group-hover:text-omiRed transition-colors">${lecture.title}</h4>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">${lecture.subject} • ${lecture.author}</p>
+                    <h4 class="font-display font-bold text-sm text-white group-hover:text-omiRed transition-colors">${escapeHtml(lecture.title)}</h4>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">${escapeHtml(lecture.subject)} • ${escapeHtml(lecture.author)}</p>
                 </div>
                 <svg class="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -68,4 +77,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-

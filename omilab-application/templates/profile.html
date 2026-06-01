@@ -576,6 +576,13 @@
             }
 
             posts.forEach(post => {
+                const escapeHtml = (value) => String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+
                 let timeString = post.created_at;
                 if (!timeString.endsWith('Z')) {
                     timeString += 'Z';
@@ -591,8 +598,9 @@
 
                 // 2. Логика Аватарки (Берем из базы или генерируем)
                 const avatarSrc = post.author_avatar_url
-                    ? post.author_avatar_url
-                    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author_username}`;
+                    ? escapeHtml(post.author_avatar_url)
+                    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(post.author_username)}`;
+                const authorUsername = escapeHtml(post.author_username);
 
                 // 3. Логика Галочки (SVG код)
                 let verifiedBadge = '';
@@ -616,8 +624,8 @@
                          <div class="w-full">
                             <div class="flex justify-between items-start">
                                 <div class="flex items-center">
-                                    <a href="/profile/${post.author_username}" class="font-display font-bold text-white text-sm hover:text-omiRed transition flex items-center">
-                                        ${post.author_username}
+                                    <a href="/profile/${encodeURIComponent(post.author_username)}" class="font-display font-bold text-white text-sm hover:text-omiRed transition flex items-center">
+                                        ${authorUsername}
                                         ${verifiedBadge}
                                     </a>
                                 </div>
@@ -625,7 +633,7 @@
                             </div>
 
                             <div class="text-gray-300 text-sm mt-2 leading-relaxed whitespace-pre-wrap font-sans bg-[#1A1A1C]/50 p-3 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl border border-white/5 group-hover:border-white/10 transition-colors">
-                                ${post.content}
+                                ${escapeHtml(post.content)}
                             </div>
                          </div>
                     </div>

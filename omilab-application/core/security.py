@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import os
 from datetime import datetime, timedelta
 
@@ -23,7 +25,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is required")
+
+ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
@@ -42,6 +47,10 @@ def decode_access_token(token: str):
         return payload
     except JWTError:
         return None
+
+
+def hash_confirmation_code(code: str) -> str:
+    return hmac.new(SECRET_KEY.encode(), code.encode(), hashlib.sha256).hexdigest()
 
 
 async def get_current_user(request: Request, db: db_dependency):

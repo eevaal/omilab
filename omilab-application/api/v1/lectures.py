@@ -21,6 +21,8 @@ from models.users import User
 from schemas.lectures import LectureCreate, LectureResponse, VoteRequest
 from services.pdf_generator import PDFService
 from sqlalchemy import select
+from utils.sanitize import sanitize_html
+from utils.uploads import validate_pdf_upload
 
 router = APIRouter(prefix="/api/v1/lectures")
 
@@ -42,8 +44,8 @@ async def create_lecture(
     final_filename = None
 
     if file:
-        if not file.filename.endswith(".pdf"):
-            raise HTTPException(status_code=400, detail="Можно загружать только PDF!")
+        await validate_pdf_upload(file)
+        file.filename = "lecture.pdf"
 
         final_filename = await upload_file_to_r2(file, folder="lectures")
 
@@ -54,13 +56,13 @@ async def create_lecture(
 
         filename = f"{uuid.uuid4()}.pdf"
 
-        content = content or "Текст лекции отсутствует..."
+        content = sanitize_html(content or "Текст лекции отсутствует...")
         pdf = PDFService(author=user.username, title=title)
         pdf.generate(content=content, filename=filename)
 
         final_filename = filename
 
-    encrypted_content = encrypt_text(content)
+    encrypted_content = encrypt_text(sanitize_html(content))
 
     lecture_data = LectureCreate(
         title=title, subject=subject, author=user.username, content=encrypted_content
@@ -74,7 +76,11 @@ async def download_lecture(filename: str):
     if filename.startswith("http"):
         return {"url": filename}
 
-    file_path = os.path.join("static", "lectures", filename)
+    base_path = os.path.abspath(os.path.join("static", "lectures"))
+    file_path = os.path.abspath(os.path.join(base_path, filename))
+
+    if not file_path.startswith(base_path + os.sep):
+        raise HTTPException(status_code=400, detail="Invalid filename")
 
     if os.path.exists(file_path):
         return FileResponse(path=file_path, filename=filename, media_type="application/pdf")
